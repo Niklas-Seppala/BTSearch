@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BTSearch</string>
+    <string name="topBarSettingsIconDesc">Open settings.</string>
+    <string name="topBarNavMenuIconDesc">Navigation menu.</string>
+</resources>

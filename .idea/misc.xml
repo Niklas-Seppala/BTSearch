@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="../../../../layout/compose-model-1664084113657.xml" value="0.3108108108108108" />
+        <entry key="../../../../layout/compose-model-1664087402601.xml" value="0.3108108108108108" />
+        <entry key="../../../../layout/compose-model-1664090647618.xml" value="0.3108108108108108" />
+        <entry key="../../../../layout/compose-model-1664090664538.xml" value="0.33" />
+        <entry key="../../../../layout/compose-model-1664090769405.xml" value="0.25" />
+        <entry key="../../../../layout/compose-model-1664090807239.xml" value="1.0" />
+        <entry key="../../../../layout/compose-model-1664090822238.xml" value="0.25" />
+        <entry key="../../../../layout/compose-model-1664090947660.xml" value="0.27037037037037037" />
+        <entry key="../../../../layout/compose-model-1664091287000.xml" value="1.0" />
+        <entry key="../../../../layout/compose-model-1664091298063.xml" value="0.25" />
+        <entry key="../../../../layout/compose-model-1664091374481.xml" value="1.0" />
+        <entry key="../../../../layout/compose-model-1664091457115.xml" value="0.3108108108108108" />
+        <entry key="../../../../layout/compose-model-1664091478077.xml" value="1.0" />
+        <entry key="../../../../layout/compose-model-1664091534421.xml" value="0.3108108108108108" />
+        <entry key="../../../../layout/compose-model-1664092151321.xml" value="1.0" />
+        <entry key="app/src/main/res/drawable/ic_baseline_bluetooth_24.xml" value="0.2355" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
