@@ -14,10 +14,6 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 
 private const val TAG = "Views"
 
-interface Navigable {
-    fun setNavController(navController: NavHostController)
-}
-
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Views(navController: NavHostController, permissions: MultiplePermissionsState?) {

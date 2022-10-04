@@ -14,7 +14,7 @@ private const val TAG = "SettingsView"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-public fun SettingsView(navigation: NavHostController, permissionsState: MultiplePermissionsState) {
+fun SettingsView(navigation: NavHostController, permissionsState: MultiplePermissionsState) {
     Box(Modifier.fillMaxSize()) {
         Text(text = TAG, modifier = Modifier.align(Alignment.Center))
     }

@@ -17,15 +17,23 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 private const val TAG = "PERMISSIONS"
 
 /**
+ * Composable wrapper function for making sure user has
+ * provided required permissions for this application
+ * to function. Registers request callback on lifecycle's
+ * onResume() method.
  *
+ * if returned value is null, then running device does
+ * not support Bluetooth LE.
+ *
+ * @return nullable MultiplePermissionsState object.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun rememberPermissionState() : MultiplePermissionsState? {
     if (LocalContext.current.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-        Log.d(TAG,"Device supports BLE.")
+        Log.d(TAG,"Device supports BTLE.")
     } else {
-        Log.e(TAG, "Device does not support BLE.")
+        Log.e(TAG, "Device does not support BTLE.")
         return null
     }
 
