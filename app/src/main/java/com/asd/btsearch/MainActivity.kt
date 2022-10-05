@@ -2,7 +2,7 @@ package com.asd.btsearch
 
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
+import android.content.res.*
 import android.content.Context
 import android.location.LocationRequest
 import android.os.Bundle
@@ -18,6 +18,7 @@ import com.asd.btsearch.ui.events.TopBarClickHandler
 import com.asd.btsearch.ui.theme.BTSearchTheme
 import com.asd.btsearch.ui.views.AppRoot
 import com.google.android.gms.location.*
+import org.osmdroid.config.*
 import org.osmdroid.config.Configuration
 
 
