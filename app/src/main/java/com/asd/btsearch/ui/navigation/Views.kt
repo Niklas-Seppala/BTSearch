@@ -11,19 +11,28 @@ import com.asd.btsearch.ui.views.SettingsView
 import com.asd.btsearch.ui.views.StatsView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.android.gms.location.FusedLocationProviderClient
 
 private const val TAG = "Views"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Views(navController: NavHostController, permissions: MultiplePermissionsState?) {
+fun Views(navController: NavHostController,
+          permissions: MultiplePermissionsState?,
+          locationProviderClient: FusedLocationProviderClient) {
+
     if (permissions == null) {  // TODO: Error page?
         Text(text = "Device does not support BLE")
         return
     }
+
     NavHost(navController = navController, startDestination = Screen.Home.baseRoute) {
         composable(Screen.Home.baseRoute) {
-            HomeView(navigation = navController, permissionsState = permissions)
+            HomeView(
+                navigation = navController,
+                permissionsState = permissions,
+                locationProviderClient = locationProviderClient
+            )
         }
         composable(Screen.Stats.baseRoute) {
             StatsView(navigation = navController, permissionsState = permissions)

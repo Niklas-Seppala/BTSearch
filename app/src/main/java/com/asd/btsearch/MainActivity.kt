@@ -1,5 +1,6 @@
 package com.asd.btsearch
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,11 +12,18 @@ import com.asd.btsearch.ui.events.RootEvents
 import com.asd.btsearch.ui.events.TopBarClickHandler
 import com.asd.btsearch.ui.theme.BTSearchTheme
 import com.asd.btsearch.ui.views.AppRoot
+import com.google.android.gms.location.*
+import org.osmdroid.config.Configuration
 
 class MainActivity : ComponentActivity() {
     private val navEvents = RootEvents()
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         setContent {
             BTSearchTheme {
                 Surface(
@@ -24,7 +32,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppRoot(
                         topBarClickHandler = navEvents as TopBarClickHandler,
-                        bottomClickHandler = navEvents as BottomBarClickHandler
+                        bottomClickHandler = navEvents as BottomBarClickHandler,
+                        locationClient =  fusedLocationClient
                     )
                 }
             }
