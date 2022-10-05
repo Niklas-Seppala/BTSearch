@@ -47,6 +47,7 @@ android {
 }
 
 dependencies {
+
     // Room database
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
@@ -61,7 +62,9 @@ dependencies {
     implementation 'org.osmdroid:osmdroid-android:6.1.14'
     implementation 'androidx.preference:preference-ktx:1.2.0'
 
+
     implementation "androidx.room:room-ktx:2.2.4"
+
 
     // Navigation
     implementation "androidx.navigation:navigation-compose:$nav_version"

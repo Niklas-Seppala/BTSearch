@@ -21,11 +21,13 @@ private const val TAG = "Views"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
+
 fun Views(modifier: Modifier = Modifier,
     navController: NavHostController,
   permissions: MultiplePermissionsState?,
           scaffoldState: ScaffoldState,
   locationProviderClient: FusedLocationProviderClient) {
+
 
     if (permissions == null) {  // TODO: Error page?
         Text(text = "Device does not support BLE")
