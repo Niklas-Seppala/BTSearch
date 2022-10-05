@@ -2,7 +2,16 @@
     <string name="app_name">BTSearch</string>
     <string name="topBarSettingsIconDesc">Open settings.</string>
     <string name="topBarNavMenuIconDesc">Navigation menu.</string>
+
     <string name="FABScanBluetoothDevicesDesc">Scan bluetooth devices</string>
     <string name="bottomNavMapDesc">Navigate to device map</string>
     <string name="bottomNavSavedDevicesDesc">Navigate to saved devices</string>
+
+
+    <!-- MeasurementView -->
+    <string name="measurement_view_instruction_1">Walk to the corner of the location and tap "Measure"</string>
+    <string name="measurement_view_instruction_2">Walk to the other side of the location and tap "Measure" again</string>
+    <string name="measurement_view_instruction_3">Estimating the location</string>
+
+
 </resources>

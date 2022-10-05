@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.asd.btsearch.ui.views.HomeView
-import com.asd.btsearch.ui.views.InfoView
+import com.asd.btsearch.ui.views.MeasurementView
 import com.asd.btsearch.ui.views.SettingsView
 import com.asd.btsearch.ui.views.StatsView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -55,7 +55,7 @@ fun Views(modifier: Modifier = Modifier,
             StatsView(modifier = modifier, navigation = navController, permissionsState = permissions)
         }
         composable(Screen.Info.baseRoute) {
-            InfoView(navigation = navController, permissionsState = permissions)
+            MeasurementView(navigation = navController, permissionsState = permissions)
         }
         composable(Screen.Settings.baseRoute) {
             SettingsView(navigation = navController, permissionsState = permissions)
