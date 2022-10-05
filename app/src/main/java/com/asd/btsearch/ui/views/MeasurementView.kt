@@ -12,35 +12,26 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
-import android.location.LocationRequest
-import android.provider.Settings.Global.getString
-import android.renderscript.RenderScript
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.asd.btsearch.classes.Measurement
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -48,14 +39,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.asd.btsearch.classes.Coordinate
 import com.asd.btsearch.R
 import com.asd.btsearch.classes.DeviceLocationEstimate
-import com.asd.btsearch.classes.EstimateLocation
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest.*
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 
-import com.google.android.gms.location.LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -78,7 +66,7 @@ class MeasurementViewModel: ViewModel() {
     var chosenDevice = _chosenDevice
 
     val scanResults = MutableLiveData<List<ScanResult>>(null)
-    val fScanning = MutableLiveData<Boolean>(false)
+    val isScanning = MutableLiveData<Boolean>(false)
     val SCAN_PERIOD = 5000L
 
 
@@ -89,7 +77,7 @@ class MeasurementViewModel: ViewModel() {
     fun scanDevices(scanner: BluetoothLeScanner) {
         viewModelScope.launch(Dispatchers.IO) {
             scanResults.postValue(listOf())
-            fScanning.postValue(true)
+            isScanning.postValue(true)
             val settings = ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .setReportDelay(0)
@@ -98,7 +86,7 @@ class MeasurementViewModel: ViewModel() {
             delay(SCAN_PERIOD)
             scanner.stopScan(leScanCallback)
             scanResults.postValue(mResults.values.toList())
-            fScanning.postValue(false)
+            isScanning.postValue(false)
         }
     }
 
@@ -138,28 +126,45 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
     var measurements = viewModel.measurements.observeAsState()
     val scanResults: List<ScanResult> by viewModel.scanResults.observeAsState(listOf())
     val chosenDevice = viewModel.chosenDevice.observeAsState()
+    val isScanning = viewModel.isScanning.observeAsState(false)
 
-    viewModel.scanDevices(btAdapter.bluetoothLeScanner)
+
     Box(Modifier.fillMaxSize()) {
 
         Column{
             Text("Chosen device addr: ${chosenDevice.value?.device?.address}")
             MeasurementInstructions()
-            Button(onClick = { addMeasurement() }) {
-                Text("Measure")
+            Row{
+                Button(
+                    onClick = { addMeasurement() },
+                    enabled = canMeasure()
+                ) {
+                    Text("Measure")
+                }
+                Button(onClick = {
+                    viewModel.scanDevices(btAdapter.bluetoothLeScanner)
+                }, enabled=!isScanning.value) {
+                    Text("Scan")
+                }
             }
 
             LazyColumn {
                 items(measurements.value?:listOf()) {
                     it ->
-                    Text("(${it.xCoord}, ${it.yCoord}) rssi: ${it.signalStrength}")
+                    //Text("(${it.xCoord}, ${it.yCoord}) rssi: ${it.signalStrength}")
                 }
             }
-            LazyColumn {
-                items(scanResults ?: listOf()) {
-                        it ->
-                    Text("(${it.device.address}) rssi: ${it.rssi}", Modifier.clickable(onClick = { viewModel.chosenDevice.postValue(it) }))
+            if(!isScanning.value) {
+                LazyColumn {
+                    items(scanResults ?: listOf()) { it ->
+                        Row{
+                            Text("(${it.device.address}) rssi: ${it.rssi}")
+                            Button(onClick = { viewModel.chosenDevice.postValue(it) }) {Text("X")}
+                        }
+                    }
                 }
+            } else {
+                Text("SCANNING")
             }
         }
 
@@ -211,6 +216,25 @@ fun estimateLocations() {
     }
 }
 
+fun scanDevice(scanResult: ScanResult?) {
+    // re-initiate a scan
+    viewModel.scanDevices(btAdapter.bluetoothLeScanner)
+    //var device = viewModel.chosenDevice.value
+    // find the device we want via MAC address
+    var device = viewModel.scanResults.value?.find { it.device.address == viewModel.chosenDevice.value?.device?.address }
+    Log.d(TAG, "Device ${device?.device?.address} new RSSI is ${device?.rssi} ")
+}
+
+fun canMeasure():Boolean {
+    if(viewModel.chosenDevice.value == null) {
+        return false
+    }
+    if(viewModel.isScanning.value == true) {
+        return false
+    }
+    return true
+}
+
 fun addMeasurement() {
     var scanResult = viewModel.chosenDevice.value
     Log.d(TAG, "Adding, values now ${viewModel.measurements.value.toString()}, count ${viewModel.measurements.value?.count()}")
@@ -218,15 +242,16 @@ fun addMeasurement() {
     getLocation()
 
     var location = viewModel.location.value
-    /*if(viewModel.measurements.value?.count() ?: 0 == 0) {
-        measurements?.add(Measurement(Coordinate(0f,0f), -90f))
-    } else if(viewModel.measurements.value?.count() == 1) {
-        measurements?.add(Measurement(Coordinate(0f,10f), -80f))
-    }*/
-    measurements?.add(
-        Measurement(
-            Coordinate(location?.latitude?.toFloat()?:0f,location?.longitude?.toFloat()?:0f), scanResult?.rssi?.toFloat() ?: 0f
+
+    if(canMeasure()) {
+        scanDevice(scanResult)
+
+        measurements?.add(
+            Measurement(
+                Coordinate(location?.latitude?.toFloat() ?: 0f,
+                    location?.longitude?.toFloat() ?: 0f), scanResult?.rssi?.toFloat() ?: 0f
+            )
         )
-    )
+    }
     viewModel.measurements.postValue(measurements)
 }
