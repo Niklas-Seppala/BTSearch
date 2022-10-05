@@ -3,7 +3,7 @@ package com.asd.btsearch.ui.navigation
 internal sealed class Screen(private val route: String) {
     object Home : Screen("home")
     object Stats : Screen("stats")
-    object Info : Screen("info")
+    object Tracing : Screen("tracing")
     object Settings : Screen("settings")
 
     val baseRoute = route

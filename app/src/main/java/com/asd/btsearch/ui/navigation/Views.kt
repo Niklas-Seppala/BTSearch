@@ -54,7 +54,7 @@ fun Views(modifier: Modifier = Modifier,
         composable(Screen.Stats.baseRoute) {
             StatsView(modifier = modifier, navigation = navController, permissionsState = permissions)
         }
-        composable(Screen.Info.baseRoute) {
+        composable(Screen.Tracing.baseRoute) {
             MeasurementView(navigation = navController, permissionsState = permissions)
         }
         composable(Screen.Settings.baseRoute) {
