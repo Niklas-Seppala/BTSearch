@@ -14,13 +14,11 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -30,7 +28,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -48,6 +48,7 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.intellij.lang.annotations.JdkConstants
 import kotlin.math.abs
 
 private const val TAG = "MeasurementView"
@@ -179,13 +180,6 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                 }
             }
 
-            LazyColumn {
-                items(measurements.value?:listOf()) {
-                    it ->
-                    //Text("(${it.xCoord}, ${it.yCoord}) rssi: ${it.signalStrength}")
-                }
-            }
-
             if(chosenDevice.value == null) { DeviceList() }
 
         }
@@ -209,11 +203,13 @@ fun DeviceList() {
     val scanResults: List<ScanResult> by viewModel.scanResults.observeAsState(listOf())
 
     if(!isScanning.value) {
-        LazyColumn {
+        LazyColumn(Modifier.fillMaxWidth().fillMaxHeight(0.75f)) {
             items(scanResults ?: listOf()) { it ->
-                Row{
-                    Text("${it.scanRecord?.deviceName} ${it.device.address} rssi: ${it.rssi}")
-                    Button(onClick = { viewModel.chosenDevice.postValue(it) }) {Text("X")}
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("${it.scanRecord?.deviceName} ${it.device.address} rssi: ${it.rssi}")
+                        Button(onClick = { viewModel.chosenDevice.postValue(it) }, ) { Text("Choose") }
+                    }
                 }
             }
         }
