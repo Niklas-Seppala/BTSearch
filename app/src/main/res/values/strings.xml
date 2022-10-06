@@ -10,8 +10,8 @@
 
     <!-- MeasurementView -->
     <string name="measurement_view_instruction_1">Please choose a device</string>
-    <string name="measurement_view_instruction_2">Walk to the other side of the location and tap "Measure" again</string>
-    <string name="measurement_view_instruction_3">Walk to the other side of the location and tap "Measure" again</string>
+    <string name="measurement_view_instruction_2">Walk to the other side of the location and tap "Measure"</string>
+    <string name="measurement_view_instruction_3">Now Walk to the other side of the location and tap "Measure" again</string>
 
 
 </resources>
