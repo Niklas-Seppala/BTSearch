@@ -6,8 +6,9 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,9 +39,7 @@ fun AppRoot(
     Scaffold(
         modifier = modifier,
         floatingActionButton = {
-            FloatingActionButton( onClick = {
-                Log.d(TAG, "FAB pressed")
-            }) {
+            FloatingActionButton( onClick = bottomClickHandler::onBottomRightClick) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_baseline_bluetooth_search_32),
                     contentDescription = stringResource(R.string.FABScanBluetoothDevicesDesc)
@@ -61,20 +60,23 @@ fun AppRoot(
         },
         isFloatingActionButtonDocked = true,
         bottomBar = {
+            var selected by remember { mutableStateOf(1) }
             BottomAppBar(cutoutShape = MaterialTheme.shapes.small.copy(
                 CornerSize(percent = 50)
             )) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    IconButton(onClick = bottomClickHandler::onBottomLeftClick) {
+                    IconButton(onClick = {bottomClickHandler.onBottomLeftClick(); selected = 0}) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_baseline_devices_32),
-                            contentDescription = stringResource(R.string.bottomNavSavedDevicesDesc)
+                            contentDescription = stringResource(R.string.bottomNavSavedDevicesDesc),
+                            tint = if (selected == 0) Color.White else Color(0xAAFFFFFF)
                         )
                     }
-                    IconButton(onClick = bottomClickHandler::onBottomCenterClick ) {
+                    IconButton(onClick = {bottomClickHandler.onBottomCenterClick(); selected = 1}) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_baseline_map_24),
-                            contentDescription = stringResource(R.string.bottomNavMapDesc)
+                            contentDescription = stringResource(R.string.bottomNavMapDesc),
+                            tint = if (selected == 1) Color.White else Color(0xAAFFFFFF)
                         )
                     }
                     Spacer(modifier = Modifier.width(50.dp))

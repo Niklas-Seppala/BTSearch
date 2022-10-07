@@ -14,7 +14,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
 private const val TAG = "Map"
-private const val MAP_ZOOM = 18.0
+private const val MAP_ZOOM = 19.0
 
 @Composable
 fun composeMap(): MapView {
