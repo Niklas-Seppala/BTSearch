@@ -32,14 +32,16 @@ fun composeMap(): MapView {
 fun Map(modifier: Modifier = Modifier, location: Location?) {
     location ?: Log.d(TAG, "Location reading is null")
 
+
     val map = composeMap()
     var mapInitialized by remember(map) { mutableStateOf(false) }
     val marker by remember { mutableStateOf(Marker(map)) }
-
     if (!mapInitialized) {
         map.setTileSource(TileSourceFactory.MAPNIK)
+        val context = LocalContext.current
         map.controller.setZoom(MAP_ZOOM)
         map.setMultiTouchControls(true)
+        marker.icon = context.getDrawable(R.drawable.ic_baseline_location_on_24)
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         marker.closeInfoWindow()
         map.overlays.add(marker)

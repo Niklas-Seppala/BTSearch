@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
@@ -40,7 +41,10 @@ fun AppRoot(
             FloatingActionButton( onClick = {
                 Log.d(TAG, "FAB pressed")
             }) {
-                Icon(Icons.Filled.Info, "")
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_baseline_bluetooth_search_32),
+                    contentDescription = stringResource(R.string.FABScanBluetoothDevicesDesc)
+                )
             }
         },
         topBar = {
@@ -62,10 +66,16 @@ fun AppRoot(
             )) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     IconButton(onClick = bottomClickHandler::onBottomLeftClick) {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Localized description")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_baseline_devices_32),
+                            contentDescription = stringResource(R.string.bottomNavSavedDevicesDesc)
+                        )
                     }
                     IconButton(onClick = bottomClickHandler::onBottomCenterClick ) {
-                        Icon(Icons.Filled.Home, contentDescription = "Localized description")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_baseline_map_24),
+                            contentDescription = stringResource(R.string.bottomNavMapDesc)
+                        )
                     }
                     Spacer(modifier = Modifier.width(50.dp))
                 }

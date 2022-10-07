@@ -2,4 +2,7 @@
     <string name="app_name">BTSearch</string>
     <string name="topBarSettingsIconDesc">Open settings.</string>
     <string name="topBarNavMenuIconDesc">Navigation menu.</string>
+    <string name="FABScanBluetoothDevicesDesc">Scan bluetooth devices</string>
+    <string name="bottomNavMapDesc">Navigate to device map</string>
+    <string name="bottomNavSavedDevicesDesc">Navigate to saved devices</string>
 </resources>
