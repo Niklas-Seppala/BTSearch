@@ -1,21 +1,84 @@
 package com.asd.btsearch.ui.views
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import android.content.Context
+import android.util.Log
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.asd.btsearch.repository.DeviceDatabase
+import com.asd.btsearch.repository.DeviceEntity
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private const val TAG = "StatsView"
 
+
+class DevicesViewModel(context: Context) : ViewModel() {
+    private val db = DeviceDatabase.get(context).deviceDao()
+    val devices = db.getEntries()
+
+    fun DEBUG_ADD_DUMMY_ENTRY() {
+        viewModelScope.launch(Dispatchers.IO) {
+            db.insertEntry(
+                DeviceEntity(
+                    timestamp = System.currentTimeMillis() / 1000,
+                    name = "Samsung TV",
+                    mac = "00-B0-D0-63-C2-26",
+                    lat = 60.234282,
+                    lon = 24.834913,
+                    isConnectable = true
+                )
+            )
+        }
+    }
+
+    fun delete(device: DeviceEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteEntry(device.id);
+        }
+    }
+}
+
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun StatsView(navigation: NavHostController, permissionsState: MultiplePermissionsState) {
-    Box(Modifier.fillMaxSize()) {
-        Text(text = TAG, modifier = Modifier.align(Alignment.Center))
+fun StatsView(
+    modifier: Modifier = Modifier,
+    navigation: NavHostController, permissionsState: MultiplePermissionsState,
+    devicesViewModel: DevicesViewModel = DevicesViewModel(LocalContext.current)
+) {
+    val devices = devicesViewModel.devices.observeAsState(listOf())
+
+    Column(modifier.padding(bottom = 30.dp)) {
+        Button(modifier = Modifier.padding(start =  8.dp),
+            onClick = { devicesViewModel.DEBUG_ADD_DUMMY_ENTRY() }) {
+            Text(text = "Add debug entry")
+        }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items(items = devices.value) {
+                DeviceCard(
+                    device = it,
+                    onDelete = { devicesViewModel.delete(it) },
+                    onJumpToLocation = {
+                        Log.d(TAG, "TODO: jump to map location")
+                    })
+            }
+        }
     }
 }
