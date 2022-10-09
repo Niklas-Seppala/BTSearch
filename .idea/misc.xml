@@ -20,6 +20,12 @@
         <entry key="../../../../layout/compose-model-1664092151321.xml" value="1.0" />
         <entry key="../../../../layout/compose-model-1664210175019.xml" value="1.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_bluetooth_24.xml" value="0.2355" />
+        <entry key="app/src/main/res/drawable/ic_baseline_bluetooth_search_32.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_devices_32.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_location_on_24.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_map_24.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_signal_24.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_signal_32.xml" value="0.1" />
       </map>
     </option>
   </component>

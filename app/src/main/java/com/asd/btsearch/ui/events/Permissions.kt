@@ -16,6 +16,21 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 private const val TAG = "PERMISSIONS"
 
+object Permissions {
+    @OptIn(ExperimentalPermissionsApi::class)
+    fun hasLocation(state: MultiplePermissionsState?): Boolean {
+        state?.permissions?.forEach {
+            when (it.permission) {
+                Manifest.permission.ACCESS_FINE_LOCATION -> {
+                    return it.hasPermission
+                }
+            }
+        }
+        Log.d(TAG, "Missing ACCESS_FINE_LOCATION")
+        return false
+    }
+}
+
 /**
  * Composable wrapper function for making sure user has
  * provided required permissions for this application
