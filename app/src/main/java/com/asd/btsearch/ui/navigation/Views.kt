@@ -2,6 +2,7 @@ package com.asd.btsearch.ui.navigation
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,9 +18,10 @@ private const val TAG = "Views"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun Views(navController: NavHostController,
-          permissions: MultiplePermissionsState?,
-          locationProviderClient: FusedLocationProviderClient) {
+fun Views(modifier: Modifier = Modifier,
+    navController: NavHostController,
+  permissions: MultiplePermissionsState?,
+  locationProviderClient: FusedLocationProviderClient) {
 
     if (permissions == null) {  // TODO: Error page?
         Text(text = "Device does not support BLE")
@@ -35,7 +37,7 @@ fun Views(navController: NavHostController,
             )
         }
         composable(Screen.Stats.baseRoute) {
-            StatsView(navigation = navController, permissionsState = permissions)
+            StatsView(modifier = modifier, navigation = navController, permissionsState = permissions)
         }
         composable(Screen.Info.baseRoute) {
             InfoView(navigation = navController, permissionsState = permissions)

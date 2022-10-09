@@ -83,9 +83,12 @@ fun AppRoot(
                 }
             }
         }
-    ) {
-        Views(navController = navController,
+    ) { padding ->
+        Views(
+            modifier = Modifier.padding(padding),
+            navController = navController,
             permissions = permissionState,
-            locationProviderClient = locationClient)
+            locationProviderClient = locationClient
+        )
     }
 }
