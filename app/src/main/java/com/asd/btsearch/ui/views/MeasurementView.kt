@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +30,8 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.app.ActivityCompat
@@ -73,6 +76,13 @@ class MeasurementViewModel: ViewModel() {
     val isMeasuring = MutableLiveData<Boolean>(false)
     val SCAN_PERIOD = 5000L
 
+    val deviceIsCloser = MutableLiveData<Boolean>(false);
+
+
+    private val deviceRssiHistoryLength = 5
+    // list of the past signal strength values we've gotten from the device
+    // used to determine if we are getting closer or going away from the device
+    var deviceRssiHistory = MutableLiveData<List<Int>>(listOf())
 
     private val mResults = java.util.HashMap<String, ScanResult>()
 
@@ -82,6 +92,10 @@ class MeasurementViewModel: ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             scanResults.postValue(listOf())
             isScanning.postValue(true)
+
+            // store the pre-existing signal strength value for later comparison
+            var oldRssi = chosenDevice.value?.rssi
+
             val settings = ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .setReportDelay(0)
@@ -91,8 +105,10 @@ class MeasurementViewModel: ViewModel() {
             scanner.stopScan(leScanCallback)
             scanResults.postValue(mResults.values.toList())
             isScanning.postValue(false)
-            Log.d(TAG, "isMeasuring: ${isMeasuring.value} chosenDevice: ${chosenDevice.value}")
-            if(chosenDevice.value != null && isMeasuring.value == true) {
+            Log.d(TAG, "Scan in progress isMeasuring: ${isMeasuring.value} chosenDevice: ${chosenDevice.value}, measurement count = ${_measurements.value?.count()}]}")
+            if(
+                chosenDevice.value != null && (isMeasuring.value == true || _measurements.value?.count()?:0 == 2)
+            ) {
                 // add measurement here when we can be sure its updated
                 var device = scanResults.value?.find { it.device.address == viewModel.chosenDevice.value?.device?.address }
                 Log.d(TAG, "Device ${device?.device?.address} new RSSI is ${device?.rssi} ")
@@ -101,16 +117,53 @@ class MeasurementViewModel: ViewModel() {
                 var xCoord = location.value?.latitude?.toFloat()?:0f
                 var yCoord = location.value?.longitude?.toFloat()?:0f
 
+
                 var coordinate = Coordinate(xCoord, yCoord)
-                measurementsList?.add(
-                    Measurement(
-                        coordinate, device?.rssi?.toFloat() ?: 0f
+                if(measurementsList?.count()?:0 < 2) {
+                    measurementsList?.add(
+                        Measurement(
+                            coordinate, device?.rssi?.toFloat() ?: 0f
+                        )
                     )
-                )
-                measurements.postValue(measurementsList)
+                    measurements.postValue(measurementsList)
+                    Log.d(TAG, "Measurements are now ${measurements}")
+
+                }
+                if(measurementsList?.count() == 2) {
+                    // re-trigger scan, as we are now in tracking mode
+                    Log.d(TAG, "re-trigger scan")
+                    scanDevices(scanner)
+                }
                 isMeasuring.postValue(false)
 
-                Log.d(TAG, "Measurements are now ${measurements}")
+                var _deviceRssiHistory = deviceRssiHistory.value?.toMutableList()
+
+                // remove the oldest signal strength value
+                if(_deviceRssiHistory?.count()?:0 > deviceRssiHistoryLength) {
+                    _deviceRssiHistory?.removeFirst()
+                }
+                _deviceRssiHistory?.add(device?.rssi ?: 0)
+
+                deviceRssiHistory.postValue(_deviceRssiHistory?.toList())
+                chosenDevice.postValue(device)
+
+                // determine if we are getting closer or not by determining the change in signal strength
+                // in signal strength
+                if(deviceRssiHistory.value?.count()?:0 >= 2) {
+                    val v1 = deviceRssiHistory.value?.first() ?: 0
+                    val v2 = deviceRssiHistory.value?.last() ?: 0
+
+                    val changePercentage = ((v2 - v1).toFloat() / v1.toFloat())*100f
+
+                    Log.d(TAG,
+                        "Old RSSI: ${oldRssi}, new RSSI ${device?.rssi} change % ${changePercentage}, closer = ${changePercentage < 0}")
+
+
+                    // negative change
+                    deviceIsCloser.postValue(
+                        changePercentage < 0
+                    )
+                }
             }
         }
     }
@@ -152,13 +205,20 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
 
     val chosenDevice = viewModel.chosenDevice.observeAsState()
     val isScanning = viewModel.isScanning.observeAsState(false)
+    val deviceIsCloser = viewModel.deviceIsCloser.observeAsState(false)
 
 
     Box(Modifier.fillMaxSize()) {
 
         Column{
-            Text("Chosen device addr: ${chosenDevice.value?.device?.address}")
-            Text("Chosen device rssi: ${chosenDevice.value?.rssi}")
+            if(chosenDevice.value != null){
+                Text("Chosen device addr: ${chosenDevice.value?.device?.address}")
+                Text("Chosen device rssi: ${chosenDevice.value?.rssi}")
+
+                // TODO: own component, implement graphical meter
+                if(deviceIsCloser.value) {Text("Getting closer")}
+                else {Text("Going away")}
+            }
             LazyColumn {
                 items(measurements?.value ?: listOf()) {
                     it ->
@@ -174,9 +234,20 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                     MeasureButton()
                 }
                 Button(onClick = {
+                    if(chosenDevice.value != null) {
+                        viewModel.chosenDevice.postValue(null)
+                        viewModel.measurements.postValue(listOf())
+                    }
                     viewModel.scanDevices(btAdapter.bluetoothLeScanner)
-                }, enabled=!isScanning.value) {
-                    Text("Scan")
+
+                }, enabled=(
+                        !isScanning.value || chosenDevice.value != null
+                    )
+                ) {
+                    if(chosenDevice.value == null ) { Text("Scan") }
+                    else {
+                        Text("Switch device")
+                    }
                 }
             }
 
@@ -203,7 +274,9 @@ fun DeviceList() {
     val scanResults: List<ScanResult> by viewModel.scanResults.observeAsState(listOf())
 
     if(!isScanning.value) {
-        LazyColumn(Modifier.fillMaxWidth().fillMaxHeight(0.75f)) {
+        LazyColumn(Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.75f)) {
             items(scanResults ?: listOf()) { it ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -221,9 +294,10 @@ fun DeviceList() {
 @Composable
 fun MeasurementInstructions() {
     var measurements = viewModel.measurements.observeAsState()
+    var chosenDevice = viewModel.chosenDevice.observeAsState()
 
     // TODO: implement possibility for more than 2 messages, use an array
-    if(viewModel.chosenDevice != null) {
+    if(chosenDevice.value != null) {
         if (measurements.value?.count() == 0) {
             Text(LocalContext.current.getString(R.string.measurement_view_instruction_2))
         } else if (measurements.value?.count() == 1) {
