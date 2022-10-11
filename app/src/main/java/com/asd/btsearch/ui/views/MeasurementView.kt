@@ -121,32 +121,7 @@ class MeasurementViewModel: ViewModel() {
             ) {
                 // add measurement here when we can be sure its updated
                 var device = scanResults.value?.find { it.device.address == viewModel.chosenDevice.value?.device?.address }
-                /*Log.d(TAG, "Device ${device?.device?.address} new RSSI is ${device?.rssi} ")
-                var measurementsList = _measurements.value?.toMutableList()
 
-                var xCoord = location.value?.latitude?.toFloat()?:0f
-                var yCoord = location.value?.longitude?.toFloat()?:0f
-
-
-                var coordinate = Coordinate(xCoord, yCoord)
-                if(measurementsList?.count()?:0 < 2) {
-                    measurementsList?.add(
-                        Measurement(
-                            coordinate, device?.rssi?.toFloat() ?: 0f
-                        )
-                    )
-                    measurements.postValue(measurementsList)
-                    Log.d(TAG, "Measurements are now ${measurements}")
-
-                }
-                if(measurementsList?.count() == 2) {
-                    // re-trigger scan, as we are now in tracking mode
-                    Log.d(TAG, "re-trigger scan")
-                    scanDevices(scanner)
-
-                }
-                isMeasuring.postValue(false)
-                */
                 var _deviceRssiHistory = deviceRssiHistory.value?.toMutableList()
 
                 // remove the oldest signal strength value
@@ -236,25 +211,14 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
     Box(Modifier.fillMaxSize()) {
 
         Column (horizontalAlignment = Alignment.CenterHorizontally){
-            if(chosenDevice.value != null /*&& measurements.value?.count() == 2*/){
+            if(chosenDevice.value != null){
                 Spacer(Modifier.fillMaxWidth(0.10f))
                 DeviceInfo(chosenDevice.value!!)
 
                 ApproachIndicator(approaching = deviceIsCloser.value, chosenDevice.value?.rssi ?: 0)
             }
 
-            /*if(measurements.value?.count()?:0 < 2) { MeasurementInstructions() } else {
-                Text(EstimateLocation.estimateLocation(measurements.value!!.get(0), measurements.value!!.get(1)).toString())
-            }*/
             Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
-                /*if(canMeasure()) {
-                    Button(
-                        onClick = { addMeasurement() },
-                        enabled = canMeasure()
-                    ) {
-                        MeasureButton()
-                    }
-                }*/
 
                 Button(onClick = {
                     if (chosenDevice.value != null) {
