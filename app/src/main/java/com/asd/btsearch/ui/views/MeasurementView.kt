@@ -302,16 +302,15 @@ fun MeasureButton() {
 @SuppressLint("MissingPermission")
 @Composable
 fun DeviceInfo(device: ScanResult) {
-    var de = DeviceEntity(
-        0,
-        device.timestampNanos/1000L,
-        device.scanRecord?.deviceName?:"Unknown",
-        device.device.address,
-        0.0,
-        0.0,
-        device.isConnectable
-    )
-    DeviceCard(device = de, onJumpToLocation = { /*TODO*/ }) {}
+    DeviceCard(
+        device=null,
+        deviceName = device.scanRecord?.deviceName?:"Unknown",
+        deviceMac = device.device.address,
+        deviceTimestamp = null,
+        deviceLat = null,
+        deviceLon = null,
+        onJumpToLocation = { /*TODO*/ }
+    ) {}
 }
 
 @Composable
