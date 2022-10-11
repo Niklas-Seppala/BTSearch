@@ -20,7 +20,7 @@
     <string name="measurement_view_switch_device">Switch device</string>
     <string name="measurement_view_choose">Choose</string>
     <string name="measurement_view_scanning">SCANNING</string>
-    <string name="measurement_view_distance_instruction">Tap to change between distance and signal strength\nGreen colour means you are getting closer</string>
+    <string name="measurement_view_distance_instruction">Tap the circle to change between the distance and the signal strength\nGreen colour means you are getting closer</string>
     <string name="measurement_view_estimated_coordinates">Estimated coordinates</string>
     <string name="measurement_view_device_name">Device name</string>
     <string name="measurement_view_device_address">Device address</string>
