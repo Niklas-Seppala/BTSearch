@@ -9,7 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.asd.btsearch.R
+import com.asd.btsearch.img.IconProcessor
 import com.asd.btsearch.repository.DeviceEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
@@ -31,18 +34,6 @@ fun composeMap(): MapView {
     }
     return mapView
 }
-
-private const val spacing = 8
-private const val height = 300
-private val textPaint = Paint().also {
-    it.style = Paint.Style.FILL
-    it.color = Color.BLACK
-    it.textSize = 30f
-}
-private val rectPaint = Paint().also {
-    it.color = Color.WHITE
-}
-
 
 @Composable
 fun Map(
@@ -81,16 +72,11 @@ fun Map(
             val m = Marker(map)
             m.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
 
-            val bitmapResource = BitmapFactory.decodeResource(context.resources,
-                R.drawable.bluetooth_marker
-            )
-            val dynamicTextWidth = textPaint.measureText(device.mac)
-            val width = dynamicTextWidth.toInt()
-            val bitmapWorkingCopy = Bitmap.createBitmap(height, width, Bitmap.Config.ARGB_8888)
-            draw(bitmapWorkingCopy, bitmapResource, dynamicTextWidth, device.mac)
-            m.icon = BitmapDrawable(context.resources, bitmapWorkingCopy)
-            m.position = GeoPoint(device.lat, device.lon)
+            this.launch {
+                m.icon = IconProcessor.drawIcon(context, device.mac)
+            }
 
+            m.position = GeoPoint(device.lat, device.lon)
             m.setOnMarkerClickListener { g, y ->
                 map.controller.animateTo(g.position)
                 onDeviceClicked(device)
@@ -123,25 +109,3 @@ fun Map(
     }
 }
 
-private fun draw(
-    bmWorkingCopy: Bitmap,
-    bmIcon: Bitmap,
-    dynamicTextWidth: Float,
-    text: String
-) {
-    val canvas = Canvas(bmWorkingCopy)
-    val iconX = 300 / 2 - bmIcon.width / 2
-    val textX = 300 / 2 - dynamicTextWidth / 2
-    val rect = Rect(iconX, 0, iconX + bmIcon.width, bmIcon.height)
-
-    val ovalRect = RectF(
-        textX,
-        bmIcon.height.toFloat() + spacing,
-        textX + dynamicTextWidth,
-        bmIcon.height + 38f
-    )
-    canvas.drawRect(ovalRect, rectPaint)
-
-    canvas.drawText(text, textX, bmIcon.height + 34f, textPaint)
-    canvas.drawBitmap(bmIcon, null, rect, null)
-}
