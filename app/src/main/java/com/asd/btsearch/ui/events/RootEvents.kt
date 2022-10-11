@@ -15,7 +15,7 @@ class RootEvents : TopBarClickHandler, BottomBarClickHandler, Navigable {
     }
 
     override fun onBottomCenterClick() {
-        navigateTo(Screen.Home.baseRoute)
+        navigateTo(Screen.Home.withArgs("-1"))
     }
 
     override fun onBottomRightClick() {

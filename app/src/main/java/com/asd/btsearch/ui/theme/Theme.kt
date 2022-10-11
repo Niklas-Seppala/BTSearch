@@ -11,13 +11,13 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 private val DarkColorPalette = darkColors(
     primary = Blue500,
     primaryVariant = Blue700,
-    secondary = Orange200
+    secondary = Orange500
 )
 
 private val LightColorPalette = lightColors(
     primary = Blue500,
     primaryVariant = Blue700,
-    secondary = Orange200,
+    secondary = Orange500,
     background = EggShell,
     onSecondary = Color.White,
 

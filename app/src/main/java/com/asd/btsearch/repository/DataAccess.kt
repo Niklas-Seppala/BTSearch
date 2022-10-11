@@ -18,6 +18,9 @@ interface DeviceDao {
     @Query("DELETE FROM entries")
     suspend fun deleteAllEntries(): Int
 
+    @Query("SELECT * FROM entries WHERE id == :id")
+    suspend fun getDevice(id: Int): DeviceEntity?
+
     @Query("DELETE FROM entries WHERE id == :id")
     suspend fun deleteEntry(id: Int) : Int
 }
