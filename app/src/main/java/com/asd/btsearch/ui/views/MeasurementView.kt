@@ -255,25 +255,25 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                         MeasureButton()
                     }
                 }*/
-                if(!isScanning.value) {
-                    Button(onClick = {
-                        if (chosenDevice.value != null) {
-                            viewModel.chosenDevice.postValue(null)
-                            viewModel.measurements.postValue(listOf())
-                        }
-                        viewModel.scanDevices(btAdapter.bluetoothLeScanner)
 
-                    }, enabled = (
-                            !isScanning.value || chosenDevice.value != null
-                            )
-                    ) {
-                        if (chosenDevice.value == null) {
-                            Text(LocalContext.current.getString(R.string.measurement_view_scan))
-                        } else {
-                            Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
-                        }
+                Button(onClick = {
+                    if (chosenDevice.value != null) {
+                        viewModel.chosenDevice.postValue(null)
+                        viewModel.measurements.postValue(listOf())
+                    }
+                    viewModel.scanDevices(btAdapter.bluetoothLeScanner)
+
+                }, enabled = (
+                        !isScanning.value || chosenDevice.value != null
+                        )
+                ) {
+                    if (chosenDevice.value == null) {
+                        Text(LocalContext.current.getString(R.string.measurement_view_scan))
+                    } else {
+                        Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
                     }
                 }
+
             }
 
             if(chosenDevice.value == null) {
@@ -364,29 +364,7 @@ fun DeviceList() {
             .fillMaxHeight(0.75f)
             .padding(horizontal = 5.dp)) {
             items((scanResults ?: listOf()).sortedBy { it -> -it.rssi }) { it ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.fillMaxWidth(0.70f)) {
-                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
-                                    Text(LocalContext.current.getString(R.string.measurement_view_device_name))
-                                    Text(it.scanRecord?.deviceName ?: "Unknown")
-                                }
-                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
-                                    Text(LocalContext.current.getString(R.string.measurement_view_device_address))
-                                    Text(it.device.address)
-                                }
-                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
-                                    Text(LocalContext.current.getString(R.string.measurement_view_signal_strength))
-                                    Text(it.rssi.toString())
-                                }
-                            }
-                            Spacer(Modifier.fillMaxWidth(0.05f))
-                            Button(onClick = { viewModel.chosenDevice.postValue(it); scanDevice() }, Modifier.fillMaxWidth()) {
-                                Text(LocalContext.current.getString(R.string.measurement_view_choose))
-                            }
-                    }
-
-                }
+                CompactDeviceCard(it)
                 Spacer(Modifier.padding(2.dp))
             }
         }
@@ -394,6 +372,44 @@ fun DeviceList() {
         Text(LocalContext.current.getString(R.string.measurement_view_scanning), Modifier.fillMaxSize(), textAlign = TextAlign.Center)
     }
 
+}
+
+@Composable
+fun CompactDeviceCard(device: ScanResult) {
+
+
+    val df = DecimalFormat("#.##")
+    df.roundingMode = RoundingMode.DOWN
+    val distance = df.format(EstimateLocation.rssiToMeters(device.rssi.toFloat()))
+
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier=Modifier.padding(5.dp)) {
+            Column(Modifier.fillMaxWidth(0.70f)) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                    Text(LocalContext.current.getString(R.string.measurement_view_device_name))
+                    Text(device.scanRecord?.deviceName ?: "Unknown")
+                }
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                    Text(LocalContext.current.getString(R.string.measurement_view_device_address))
+                    Text(device.device.address)
+                }
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                    Text(LocalContext.current.getString(R.string.measurement_view_signal_strength))
+                    Text(device.rssi.toString())
+                }
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                    Text(LocalContext.current.getString(R.string.measurement_view_distance_estimate))
+                    Text("${distance}m")
+                }
+            }
+            Spacer(Modifier.fillMaxWidth(0.05f))
+            Button(onClick = { viewModel.chosenDevice.postValue(device); scanDevice() }, Modifier.fillMaxWidth()) {
+                Text(LocalContext.current.getString(R.string.measurement_view_choose))
+            }
+        }
+
+    }
 }
 
 @Composable
