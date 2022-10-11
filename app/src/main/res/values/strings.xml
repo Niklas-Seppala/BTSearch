@@ -13,6 +13,7 @@
     <string name="measurement_view_instruction_2">Tap "measure" to take your first signal strength measurement</string>
     <string name="measurement_view_instruction_3">Now go to the other side of the area you believe the device is at and tap "measure" again to estimate the device\'s location</string>
 
+
     <string name="measurement_view_getting_closer">Getting closer</string>
     <string name="measurement_view_going_away">Going away</string>
     <string name="measurement_view_scan">Scan for bluetooth devices</string>
@@ -21,6 +22,9 @@
     <string name="measurement_view_scanning">SCANNING</string>
     <string name="measurement_view_measuring">MEASURING</string>
     <string name="measurement_view_estimated_coordinates">Estimated coordinates</string>
+    <string name="measurement_view_device_name">Device name</string>
+    <string name="measurement_view_device_address">Device address</string>
+    <string name="measurement_view_signal_strength">Signal strength</string>
 
 
 </resources>

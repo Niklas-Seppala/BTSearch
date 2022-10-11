@@ -47,6 +47,7 @@ import com.asd.btsearch.classes.Coordinate
 import com.asd.btsearch.R
 import com.asd.btsearch.classes.DeviceLocationEstimate
 import com.asd.btsearch.classes.EstimateLocation
+import com.asd.btsearch.repository.DeviceEntity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest.*
 import com.google.android.gms.location.LocationServices
@@ -56,6 +57,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.JdkConstants
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import kotlin.math.abs
 
 private const val TAG = "MeasurementView"
@@ -97,9 +100,6 @@ class MeasurementViewModel: ViewModel() {
             scanResults.postValue(listOf())
             isScanning.postValue(true)
 
-            // store the pre-existing signal strength value for later comparison
-            var oldRssi = chosenDevice.value?.rssi
-
             val settings = ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .setReportDelay(0)
@@ -111,11 +111,11 @@ class MeasurementViewModel: ViewModel() {
             isScanning.postValue(false)
             Log.d(TAG, "Scan in progress isMeasuring: ${isMeasuring.value} chosenDevice: ${chosenDevice.value}, measurement count = ${_measurements.value?.count()}]}")
             if(
-                chosenDevice.value != null && (isMeasuring.value == true || _measurements.value?.count()?:0 == 2)
+                chosenDevice.value != null /*&& (isMeasuring.value == true || _measurements.value?.count()?:0 == 2)*/
             ) {
                 // add measurement here when we can be sure its updated
                 var device = scanResults.value?.find { it.device.address == viewModel.chosenDevice.value?.device?.address }
-                Log.d(TAG, "Device ${device?.device?.address} new RSSI is ${device?.rssi} ")
+                /*Log.d(TAG, "Device ${device?.device?.address} new RSSI is ${device?.rssi} ")
                 var measurementsList = _measurements.value?.toMutableList()
 
                 var xCoord = location.value?.latitude?.toFloat()?:0f
@@ -138,12 +138,9 @@ class MeasurementViewModel: ViewModel() {
                     Log.d(TAG, "re-trigger scan")
                     scanDevices(scanner)
 
-                    Log.d(TAG, "Estimated location ${
-                        EstimateLocation.estimateLocation(measurementsList[0], measurementsList[1])
-                    }")
                 }
                 isMeasuring.postValue(false)
-
+                */
                 var _deviceRssiHistory = deviceRssiHistory.value?.toMutableList()
 
                 // remove the oldest signal strength value
@@ -171,9 +168,13 @@ class MeasurementViewModel: ViewModel() {
                     }
 
                     Log.d(TAG,
-                        "Old RSSI: ${v1}, new RSSI ${v2} change % ${changePercentage}, closer = ${deviceIsCloser.value}")
+                        "Old RSSI: ${v1}, new RSSI ${v2} change % ${changePercentage}, closer = ${deviceIsCloser.value} txPower ${ device?.txPower}")
 
                 }
+
+                // re-trigger scan, as we are now in tracking mode
+                Log.d(TAG, "re-trigger scan")
+                scanDevices(scanner)
             }
         }
     }
@@ -216,51 +217,52 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
     val chosenDevice = viewModel.chosenDevice.observeAsState()
     val isScanning = viewModel.isScanning.observeAsState(false)
     val isMeasuring = viewModel.isMeasuring.observeAsState(false)
+    val scanResults = viewModel.scanResults.observeAsState(listOf())
     val deviceIsCloser = viewModel.deviceIsCloser.observeAsState(false)
 
+    if(scanResults.value == null) {
+        viewModel.scanDevices(btAdapter.bluetoothLeScanner)
+    }
 
     Box(Modifier.fillMaxSize()) {
 
         Column (horizontalAlignment = Alignment.CenterHorizontally){
-            if(chosenDevice.value != null && measurements.value?.count() == 2){
+            if(chosenDevice.value != null /*&& measurements.value?.count() == 2*/){
                 Spacer(Modifier.fillMaxWidth(0.10f))
+                DeviceInfo(chosenDevice.value!!)
+
                 ApproachIndicator(approaching = deviceIsCloser.value, chosenDevice.value?.rssi ?: 0)
             }
-            LazyColumn {
-                items(measurements?.value ?: listOf()) {
-                    it ->
-                    Text("(${it.xCoord}, ${it.yCoord}, ${it.signalStrength})")
-                }
-            }
 
-            if(measurements.value?.count()?:0 < 2) { MeasurementInstructions() } else {
+            /*if(measurements.value?.count()?:0 < 2) { MeasurementInstructions() } else {
                 Text(EstimateLocation.estimateLocation(measurements.value!!.get(0), measurements.value!!.get(1)).toString())
-            }
+            }*/
             Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
-                if(canMeasure()) {
+                /*if(canMeasure()) {
                     Button(
                         onClick = { addMeasurement() },
                         enabled = canMeasure()
                     ) {
                         MeasureButton()
                     }
-                }
-                Button(onClick = {
-                    if(chosenDevice.value != null) {
-                        viewModel.chosenDevice.postValue(null)
-                        viewModel.measurements.postValue(listOf())
-                    }
-                    viewModel.scanDevices(btAdapter.bluetoothLeScanner)
+                }*/
+                if(!isScanning.value) {
+                    Button(onClick = {
+                        if (chosenDevice.value != null) {
+                            viewModel.chosenDevice.postValue(null)
+                            viewModel.measurements.postValue(listOf())
+                        }
+                        viewModel.scanDevices(btAdapter.bluetoothLeScanner)
 
-                }, enabled=(
-                        !isScanning.value || chosenDevice.value != null
-                    )
-                ) {
-                    if(chosenDevice.value == null ) {
-                        Text(LocalContext.current.getString(R.string.measurement_view_scan))
-                    }
-                    else {
-                        Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
+                    }, enabled = (
+                            !isScanning.value || chosenDevice.value != null
+                            )
+                    ) {
+                        if (chosenDevice.value == null) {
+                            Text(LocalContext.current.getString(R.string.measurement_view_scan))
+                        } else {
+                            Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
+                        }
                     }
                 }
             }
@@ -285,6 +287,21 @@ fun MeasureButton() {
     Text(text)
 }
 
+@SuppressLint("MissingPermission")
+@Composable
+fun DeviceInfo(device: ScanResult) {
+    var de = DeviceEntity(
+        0,
+        device.timestampNanos/1000L,
+        device.scanRecord?.deviceName?:"Unknown",
+        device.device.address,
+        0.0,
+        0.0,
+        device.isConnectable
+    )
+    DeviceCard(device = de, onJumpToLocation = { /*TODO*/ }) {}
+}
+
 @Composable
 fun ApproachIndicator(approaching: Boolean, rssi: Int) {
     val size = 200.dp
@@ -292,6 +309,11 @@ fun ApproachIndicator(approaching: Boolean, rssi: Int) {
     if (approaching) {
         bgColor = Color.Green
     }
+
+    val df = DecimalFormat("#.##")
+    df.roundingMode = RoundingMode.DOWN
+    val distance = df.format(EstimateLocation.rssiToMeters(rssi.toFloat()))
+    Log.d(TAG, "Estimated distance ${distance}")
     Column(modifier = Modifier
         .fillMaxWidth()
         .wrapContentSize(Alignment.Center)) {
@@ -302,7 +324,7 @@ fun ApproachIndicator(approaching: Boolean, rssi: Int) {
                 .background(bgColor)
         ) {
             Text(
-                rssi.toString(), textAlign = TextAlign.Center,
+                "~${distance}m", textAlign = TextAlign.Center,
                 fontSize = 30.sp,
                 modifier = Modifier
                     .width(size)
@@ -321,14 +343,33 @@ fun DeviceList() {
     if(!isScanning.value) {
         LazyColumn(Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.75f)) {
+            .fillMaxHeight(0.75f)
+            .padding(horizontal = 5.dp)) {
             items((scanResults ?: listOf()).sortedBy { it -> -it.rssi }) { it ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("${it.scanRecord?.deviceName} ${it.device.address} rssi: ${it.rssi}")
-                        Button(onClick = { viewModel.chosenDevice.postValue(it) }, ) { Text(LocalContext.current.getString(R.string.measurement_view_choose)) }
+                            Column(Modifier.fillMaxWidth(0.70f)) {
+                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                                    Text(LocalContext.current.getString(R.string.measurement_view_device_name))
+                                    Text(it.scanRecord?.deviceName ?: "Unknown")
+                                }
+                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                                    Text(LocalContext.current.getString(R.string.measurement_view_device_address))
+                                    Text(it.device.address)
+                                }
+                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                                    Text(LocalContext.current.getString(R.string.measurement_view_signal_strength))
+                                    Text(it.rssi.toString())
+                                }
+                            }
+                            Spacer(Modifier.fillMaxWidth(0.05f))
+                            Button(onClick = { viewModel.chosenDevice.postValue(it); scanDevice() }, Modifier.fillMaxWidth()) {
+                                Text(LocalContext.current.getString(R.string.measurement_view_choose))
+                            }
                     }
+
                 }
+                Spacer(Modifier.padding(2.dp))
             }
         }
     } else {
@@ -370,15 +411,6 @@ fun getLocation() {
         location ->
         viewModel.location.postValue(location)
         Log.d(TAG, "lat: ${location.latitude} long: ${location.longitude}")
-    }
-}
-
-fun estimateLocations() {
-    var measurements = viewModel.measurements
-    var scanResults = viewModel.scanResults
-
-    if(measurements.value?.count() ?: 0 < 2) {
-
     }
 }
 
