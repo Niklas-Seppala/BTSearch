@@ -75,6 +75,11 @@ fun StatsView(
             items(items = devices.value) {
                 DeviceCard(
                     device = it,
+                    deviceName = it.name,
+                    deviceMac = it.mac,
+                    deviceTimestamp = it.timestamp,
+                    deviceLat = it.lat,
+                    deviceLon = it.lon,
                     onDelete = { devicesViewModel.delete(it) },
                     onJumpToLocation = {
                         navigation.navigate(Screen.Home.withArgs("${it.id}"))

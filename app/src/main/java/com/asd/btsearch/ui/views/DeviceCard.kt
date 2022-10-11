@@ -25,7 +25,12 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun DeviceCard(
     modifier: Modifier = Modifier,
-    device: DeviceEntity,
+    device: DeviceEntity?,
+    deviceName: String?,
+    deviceMac: String,
+    deviceTimestamp: Long?,
+    deviceLat: Double?,
+    deviceLon: Double?,
     onJumpToLocation: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -48,28 +53,38 @@ fun DeviceCard(
         ) {
             Column(Modifier.padding(8.dp)) {
                 Row {
-                    Text(text = device.name, style = MaterialTheme.typography.h4)
+                    Text(text = deviceName?:"Unknown", style = MaterialTheme.typography.h4)
                     Spacer(modifier = Modifier.weight(1.0f))
-                    IconButton(onClick = onDelete) {
-                        Icon(Icons.Filled.Delete, "Delete this device")
+
+                    if(device != null) {
+                        IconButton(onClick = onDelete) {
+                            Icon(Icons.Filled.Delete, "Delete this device")
+                        }
                     }
                 }
                 Column(modifier = Modifier.padding(4.dp)) {
-                    Text(text = device.mac)
+                    Text(text = deviceMac)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = "Connectable")
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(Icons.Filled.Check, "", modifier = Modifier.height(18.dp))
                     }
-                    Location(device = device, onClick = onJumpToLocation)
+                    if(deviceLat != null && deviceLon != null) {
+                        Location(device = device,
+                            deviceLat = deviceLat,
+                            deviceLon = deviceLon,
+                            onClick = onJumpToLocation)
+                    }
                 }
-                Text(
-                    modifier = Modifier.align(Alignment.End),
-                    text = DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochSecond(device.timestamp)),
-                    color = Color(0x88000000),
-                    fontStyle = FontStyle.Italic,
-                    fontSize = 13.sp
-                )
+                if(deviceTimestamp != null) {
+                    Text(
+                        modifier = Modifier.align(Alignment.End),
+                        text = DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochSecond(deviceTimestamp)),
+                        color = Color(0x88000000),
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 13.sp
+                    )
+                }
 
             }
         }
@@ -79,7 +94,9 @@ fun DeviceCard(
 @Composable
 private fun Location(
     modifier: Modifier = Modifier,
-    device: DeviceEntity,
+    device: DeviceEntity?,
+    deviceLat: Double?,
+    deviceLon: Double?,
     onClick: () -> Unit
 ) {
     Surface(modifier = modifier) {
@@ -90,7 +107,7 @@ private fun Location(
                     contentDescription = ""
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "${device.lat}, ${device.lon}")
+                Text(text = "${deviceLat}, ${deviceLon}")
             }
         }
     }
@@ -101,7 +118,16 @@ private fun Location(
 private fun DeviceCardPreview() {
     BTSearchTheme {
         Box(Modifier.padding(18.dp)) {
-            DeviceCard(device = DeviceEntity.Example, onDelete = {}, onJumpToLocation = {})
+            DeviceCard(
+                device = DeviceEntity.Example,
+                deviceName = DeviceEntity.Example.name,
+                deviceMac = DeviceEntity.Example.mac,
+                deviceTimestamp = DeviceEntity.Example.timestamp,
+                deviceLat = DeviceEntity.Example.lat,
+                deviceLon = DeviceEntity.Example.lon,
+                onDelete = {},
+                onJumpToLocation = {}
+            )
         }
     }
 }

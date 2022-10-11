@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.asd.btsearch.ui.views.HomeView
-import com.asd.btsearch.ui.views.InfoView
+import com.asd.btsearch.ui.views.MeasurementView
 import com.asd.btsearch.ui.views.SettingsView
 import com.asd.btsearch.ui.views.StatsView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -21,11 +21,13 @@ private const val TAG = "Views"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
+
 fun Views(modifier: Modifier = Modifier,
     navController: NavHostController,
   permissions: MultiplePermissionsState?,
           scaffoldState: ScaffoldState,
   locationProviderClient: FusedLocationProviderClient) {
+
 
     if (permissions == null) {  // TODO: Error page?
         Text(text = "Device does not support BLE")
@@ -52,8 +54,8 @@ fun Views(modifier: Modifier = Modifier,
         composable(Screen.Stats.baseRoute) {
             StatsView(modifier = modifier, navigation = navController, permissionsState = permissions)
         }
-        composable(Screen.Info.baseRoute) {
-            InfoView(navigation = navController, permissionsState = permissions)
+        composable(Screen.Tracing.baseRoute) {
+            MeasurementView(navigation = navController, permissionsState = permissions)
         }
         composable(Screen.Settings.baseRoute) {
             SettingsView(navigation = navController, permissionsState = permissions)

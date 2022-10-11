@@ -46,8 +46,6 @@ fun Map(
     location ?: Log.d(TAG, "Location reading is null")
     selectedDevice ?: Log.d(TAG, "Device is null")
 
-    Log.d(TAG, devices.toString())
-
     val map = composeMap()
     var mapInitialized by remember(map) { mutableStateOf(false) }
     val userLocationMarker by remember { mutableStateOf(Marker(map)) }
@@ -57,10 +55,12 @@ fun Map(
         val context = LocalContext.current
         map.controller.setZoom(MAP_ZOOM)
         map.setMultiTouchControls(true)
+
         userLocationMarker.icon = context.getDrawable(R.drawable.ic_baseline_location_on_24)
         userLocationMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
         userLocationMarker.closeInfoWindow()
         map.overlays.add(userLocationMarker)
+
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
         mapInitialized = true
     }

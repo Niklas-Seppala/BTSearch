@@ -53,11 +53,13 @@ fun AppRoot(
             }
         },
         floatingActionButton = {
+
             FloatingActionButton( onClick = bottomClickHandler::onBottomRightClick) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_baseline_bluetooth_search_32),
                     contentDescription = stringResource(R.string.FABScanBluetoothDevicesDesc)
                 )
+
             }
         },
         topBar = {
@@ -74,7 +76,9 @@ fun AppRoot(
         },
         isFloatingActionButtonDocked = true,
         bottomBar = {
+
             var selected by remember { mutableStateOf(1) }
+
             BottomAppBar(cutoutShape = MaterialTheme.shapes.small.copy(
                 CornerSize(percent = 50)
             )) {
@@ -108,5 +112,6 @@ fun AppRoot(
             locationProviderClient = locationClient,
             scaffoldState = scaffoldState
         )
+
     }
 }
