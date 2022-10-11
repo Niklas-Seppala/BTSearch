@@ -10,8 +10,17 @@
 
     <!-- MeasurementView -->
     <string name="measurement_view_instruction_1">Please choose a device</string>
-    <string name="measurement_view_instruction_2">Walk to the other side of the location and tap "Measure"</string>
-    <string name="measurement_view_instruction_3">Now Walk to the other side of the location and tap "Measure" again</string>
+    <string name="measurement_view_instruction_2">Tap "measure" to take your first signal strength measurement</string>
+    <string name="measurement_view_instruction_3">Now go to the other side of the area you believe the device is at and tap "measure" again to estimate the device\'s location</string>
+
+    <string name="measurement_view_getting_closer">Getting closer</string>
+    <string name="measurement_view_going_away">Going away</string>
+    <string name="measurement_view_scan">Scan for bluetooth devices</string>
+    <string name="measurement_view_switch_device">Switch device</string>
+    <string name="measurement_view_choose">Choose</string>
+    <string name="measurement_view_scanning">SCANNING</string>
+    <string name="measurement_view_measuring">MEASURING</string>
+    <string name="measurement_view_estimated_coordinates">Estimated coordinates</string>
 
 
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -30,10 +31,13 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -74,12 +78,12 @@ class MeasurementViewModel: ViewModel() {
     val scanResults = MutableLiveData<List<ScanResult>>(null)
     val isScanning = MutableLiveData<Boolean>(false)
     val isMeasuring = MutableLiveData<Boolean>(false)
-    val SCAN_PERIOD = 5000L
+    val SCAN_PERIOD = 2000L
 
     val deviceIsCloser = MutableLiveData<Boolean>(false);
 
 
-    private val deviceRssiHistoryLength = 5
+    private val deviceRssiHistoryLength = 2
     // list of the past signal strength values we've gotten from the device
     // used to determine if we are getting closer or going away from the device
     var deviceRssiHistory = MutableLiveData<List<Int>>(listOf())
@@ -150,19 +154,22 @@ class MeasurementViewModel: ViewModel() {
                 // determine if we are getting closer or not by determining the change in signal strength
                 // in signal strength
                 if(deviceRssiHistory.value?.count()?:0 >= 2) {
-                    val v1 = deviceRssiHistory.value?.first() ?: 0
-                    val v2 = deviceRssiHistory.value?.last() ?: 0
+                    val v1 = abs(deviceRssiHistory.value?.first() ?: 0)
+                    val v2 = abs(deviceRssiHistory.value?.last() ?: 0)
 
                     val changePercentage = ((v2 - v1).toFloat() / v1.toFloat())*100f
 
+
+                    if(v1 != v2) {
+                        deviceIsCloser.postValue(
+                            //changePercentage < 0
+                            v2 > v1
+                        )
+                    }
+
                     Log.d(TAG,
-                        "Old RSSI: ${oldRssi}, new RSSI ${device?.rssi} change % ${changePercentage}, closer = ${changePercentage < 0}")
+                        "Old RSSI: ${v1}, new RSSI ${v2} change % ${changePercentage}, closer = ${deviceIsCloser.value}")
 
-
-                    // negative change
-                    deviceIsCloser.postValue(
-                        changePercentage < 0
-                    )
                 }
             }
         }
@@ -205,19 +212,16 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
 
     val chosenDevice = viewModel.chosenDevice.observeAsState()
     val isScanning = viewModel.isScanning.observeAsState(false)
+    val isMeasuring = viewModel.isMeasuring.observeAsState(false)
     val deviceIsCloser = viewModel.deviceIsCloser.observeAsState(false)
 
 
     Box(Modifier.fillMaxSize()) {
 
-        Column{
-            if(chosenDevice.value != null){
-                Text("Chosen device addr: ${chosenDevice.value?.device?.address}")
-                Text("Chosen device rssi: ${chosenDevice.value?.rssi}")
-
-                // TODO: own component, implement graphical meter
-                if(deviceIsCloser.value) {Text("Getting closer")}
-                else {Text("Going away")}
+        Column (horizontalAlignment = Alignment.CenterHorizontally){
+            if(chosenDevice.value != null && measurements.value?.count() == 2){
+                Spacer(Modifier.fillMaxWidth(0.10f))
+                ApproachIndicator(approaching = deviceIsCloser.value, chosenDevice.value?.rssi ?: 0)
             }
             LazyColumn {
                 items(measurements?.value ?: listOf()) {
@@ -225,13 +229,15 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                     Text("(${it.xCoord}, ${it.yCoord}, ${it.signalStrength})")
                 }
             }
-            MeasurementInstructions()
-            Row{
-                Button(
-                    onClick = { addMeasurement() },
-                    enabled = canMeasure()
-                ) {
-                    MeasureButton()
+            if(measurements.value?.count()?:0 < 2) { MeasurementInstructions() }
+            Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
+                if(canMeasure()) {
+                    Button(
+                        onClick = { addMeasurement() },
+                        enabled = canMeasure()
+                    ) {
+                        MeasureButton()
+                    }
                 }
                 Button(onClick = {
                     if(chosenDevice.value != null) {
@@ -244,14 +250,19 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                         !isScanning.value || chosenDevice.value != null
                     )
                 ) {
-                    if(chosenDevice.value == null ) { Text("Scan") }
+                    if(chosenDevice.value == null ) {
+                        Text(LocalContext.current.getString(R.string.measurement_view_scan))
+                    }
                     else {
-                        Text("Switch device")
+                        Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
                     }
                 }
             }
 
             if(chosenDevice.value == null) { DeviceList() }
+            if(isMeasuring.value) {
+                Text(LocalContext.current.getString(R.string.measurement_view_measuring))
+            }
 
         }
 
@@ -269,6 +280,34 @@ fun MeasureButton() {
 }
 
 @Composable
+fun ApproachIndicator(approaching: Boolean, rssi: Int) {
+    val size = 200.dp
+    var bgColor = Color.Red; // TODO: Better colors
+    if (approaching) {
+        bgColor = Color.Green
+    }
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentSize(Alignment.Center)) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(bgColor)
+        ) {
+            Text(
+                rssi.toString(), textAlign = TextAlign.Center,
+                fontSize = 30.sp,
+                modifier = Modifier
+                    .width(size)
+                    .height(size)
+                    .wrapContentHeight()
+            )
+        }
+    }
+}
+
+@Composable
 fun DeviceList() {
     val isScanning = viewModel.isScanning.observeAsState(false)
     val scanResults: List<ScanResult> by viewModel.scanResults.observeAsState(listOf())
@@ -277,18 +316,19 @@ fun DeviceList() {
         LazyColumn(Modifier
             .fillMaxWidth()
             .fillMaxHeight(0.75f)) {
-            items(scanResults ?: listOf()) { it ->
+            items((scanResults ?: listOf()).sortedBy { it -> -it.rssi }) { it ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text("${it.scanRecord?.deviceName} ${it.device.address} rssi: ${it.rssi}")
-                        Button(onClick = { viewModel.chosenDevice.postValue(it) }, ) { Text("Choose") }
+                        Button(onClick = { viewModel.chosenDevice.postValue(it) }, ) { Text(LocalContext.current.getString(R.string.measurement_view_choose)) }
                     }
                 }
             }
         }
     } else {
-        Text("SCANNING")
+        Text(LocalContext.current.getString(R.string.measurement_view_scanning))
     }
+
 }
 
 @Composable
@@ -296,23 +336,18 @@ fun MeasurementInstructions() {
     var measurements = viewModel.measurements.observeAsState()
     var chosenDevice = viewModel.chosenDevice.observeAsState()
 
+    var text = LocalContext.current.getString(R.string.measurement_view_instruction_1)
+
     // TODO: implement possibility for more than 2 messages, use an array
     if(chosenDevice.value != null) {
         if (measurements.value?.count() == 0) {
-            Text(LocalContext.current.getString(R.string.measurement_view_instruction_2))
+            text = LocalContext.current.getString(R.string.measurement_view_instruction_2)
         } else if (measurements.value?.count() == 1) {
-            Text(LocalContext.current.getString(R.string.measurement_view_instruction_3))
-        } else if (measurements.value?.count()!! >= 2) {
-            Column {
-                Text("Estimated coordinates")
-                Text("${EstimateLocation.estimateLocation(measurements?.value!!.get(0), measurements?.value!!.get(1)).toString()}")
-            }
-
+            text = LocalContext.current.getString(R.string.measurement_view_instruction_3)
         }
     }
-    else {
-        Text(LocalContext.current.getString(R.string.measurement_view_instruction_1))
-    }
+
+    Text(text, textAlign = TextAlign.Center)
 }
 
 fun getLocation() {
