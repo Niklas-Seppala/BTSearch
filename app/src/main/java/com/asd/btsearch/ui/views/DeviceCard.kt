@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.asd.btsearch.R
 import com.asd.btsearch.repository.DeviceEntity
 import com.asd.btsearch.ui.theme.BTSearchTheme
-import com.asd.btsearch.ui.theme.Orange200
+import com.asd.btsearch.ui.theme.Orange500
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -34,7 +34,7 @@ fun DeviceCard(
             .fillMaxWidth()
             .padding(8.dp)
             .then(modifier),
-        elevation = 6.dp, backgroundColor = Orange200
+        elevation = 6.dp, backgroundColor = Orange500
     ) {
         Card(
             elevation = 4.dp,

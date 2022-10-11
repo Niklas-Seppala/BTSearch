@@ -1,6 +1,5 @@
 package com.asd.btsearch.ui.views
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
@@ -19,8 +18,12 @@ import com.asd.btsearch.ui.events.TopBarClickHandler
 import com.asd.btsearch.ui.events.rememberPermissionState
 import com.asd.btsearch.ui.navigation.Navigable
 import com.asd.btsearch.ui.navigation.Views
+import com.asd.btsearch.ui.theme.Blue100
+import com.asd.btsearch.ui.theme.Blue200
+import com.asd.btsearch.ui.theme.Orange200
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
+import kotlinx.coroutines.launch
 
 private const val TAG = "AppRoot"
 
@@ -34,10 +37,21 @@ fun AppRoot(
 ) {
     val navController = rememberNavController()
     val permissionState = rememberPermissionState()
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
     (topBarClickHandler as Navigable).also { it.setNavController(navController) }
 
     Scaffold(
         modifier = modifier,
+        scaffoldState = scaffoldState,
+        snackbarHost = {
+            SnackbarHost(it) { data ->
+                Snackbar(
+                    actionColor = Orange200,
+                    snackbarData = data
+                )
+            }
+        },
         floatingActionButton = {
             FloatingActionButton( onClick = bottomClickHandler::onBottomRightClick) {
                 Icon(
@@ -65,7 +79,10 @@ fun AppRoot(
                 CornerSize(percent = 50)
             )) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    IconButton(onClick = {bottomClickHandler.onBottomLeftClick(); selected = 0}) {
+                    IconButton(onClick = {
+                        bottomClickHandler.onBottomLeftClick();
+                        selected = 0
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_baseline_devices_32),
                             contentDescription = stringResource(R.string.bottomNavSavedDevicesDesc),
@@ -88,7 +105,8 @@ fun AppRoot(
             modifier = Modifier.padding(padding),
             navController = navController,
             permissions = permissionState,
-            locationProviderClient = locationClient
+            locationProviderClient = locationClient,
+            scaffoldState = scaffoldState
         )
     }
 }

@@ -18,6 +18,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.asd.btsearch.repository.DeviceDatabase
 import com.asd.btsearch.repository.DeviceEntity
+import com.asd.btsearch.ui.navigation.Screen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +38,8 @@ class DevicesViewModel(context: Context) : ViewModel() {
                     timestamp = System.currentTimeMillis() / 1000,
                     name = "Samsung TV",
                     mac = "00-B0-D0-63-C2-26",
-                    lat = 60.234282,
-                    lon = 24.834913,
+                    lat = 60.233282,
+                    lon = 24.835913,
                     isConnectable = true
                 )
             )
@@ -76,7 +77,7 @@ fun StatsView(
                     device = it,
                     onDelete = { devicesViewModel.delete(it) },
                     onJumpToLocation = {
-                        Log.d(TAG, "TODO: jump to map location")
+                        navigation.navigate(Screen.Home.withArgs("${it.id}"))
                     })
             }
         }
