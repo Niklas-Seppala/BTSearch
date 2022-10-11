@@ -81,12 +81,14 @@ class MeasurementViewModel: ViewModel() {
     val scanResults = MutableLiveData<List<ScanResult>>(null)
     val isScanning = MutableLiveData<Boolean>(false)
     val isMeasuring = MutableLiveData<Boolean>(false)
-    val SCAN_PERIOD = 2000L
+    val SCAN_PERIOD_SEARCH = 5000L
+    val SCAN_PERIOD_TRACING = 3000L
 
+    val deviceDistance = MutableLiveData<Float>(0f)
     val deviceIsCloser = MutableLiveData<Boolean>(false);
 
 
-    private val deviceRssiHistoryLength = 2
+    private val deviceRssiHistoryLength = 5
     // list of the past signal strength values we've gotten from the device
     // used to determine if we are getting closer or going away from the device
     var deviceRssiHistory = MutableLiveData<List<Int>>(listOf())
@@ -105,7 +107,11 @@ class MeasurementViewModel: ViewModel() {
                 .setReportDelay(0)
                 .build()
             scanner.startScan(null, settings, leScanCallback)
-            delay(SCAN_PERIOD)
+            var period = SCAN_PERIOD_SEARCH
+            if(chosenDevice.value != null) {
+                period = SCAN_PERIOD_TRACING
+            }
+            delay(period)
             scanner.stopScan(leScanCallback)
             scanResults.postValue(mResults.values.toList())
             isScanning.postValue(false)
@@ -153,22 +159,25 @@ class MeasurementViewModel: ViewModel() {
                 chosenDevice.postValue(device)
 
                 // determine if we are getting closer or not by determining the change in signal strength
-                // in signal strength
                 if(deviceRssiHistory.value?.count()?:0 >= 2) {
                     val v1 = abs(deviceRssiHistory.value?.first() ?: 0)
                     val v2 = abs(deviceRssiHistory.value?.last() ?: 0)
 
-                    val changePercentage = ((v2 - v1).toFloat() / v1.toFloat())*100f
-
+                    val distance = EstimateLocation.rssiToMeters(
+                        deviceRssiHistory.value?.average()!!.toFloat()
+                    )
 
                     if(v1 != v2) {
                         deviceIsCloser.postValue(
-                            v2 < v1
+                            (v2 < v1)
                         )
                     }
 
+                    // estimate the distance over the average of the last few rssi values acquired
+                    deviceDistance.postValue(distance)
+
                     Log.d(TAG,
-                        "Old RSSI: ${v1}, new RSSI ${v2} change % ${changePercentage}, closer = ${deviceIsCloser.value} txPower ${ device?.txPower}")
+                        "Old RSSI: ${v1}, new RSSI ${v2}  closer = ${deviceIsCloser.value} txPower ${ device?.txPower}")
 
                 }
 
@@ -267,10 +276,13 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                 }
             }
 
-            if(chosenDevice.value == null) { DeviceList() }
-            if(isMeasuring.value) {
-                Text(LocalContext.current.getString(R.string.measurement_view_measuring))
+            if(chosenDevice.value == null) {
+                DeviceList()
             }
+            else {
+                Text(LocalContext.current.getString(R.string.measurement_view_distance_instruction))
+            }
+
 
         }
 
@@ -313,6 +325,11 @@ fun ApproachIndicator(approaching: Boolean, rssi: Int) {
     val df = DecimalFormat("#.##")
     df.roundingMode = RoundingMode.DOWN
     val distance = df.format(EstimateLocation.rssiToMeters(rssi.toFloat()))
+
+    var showRssi by remember { mutableStateOf(false) }
+    var content = "~${distance}m"
+    if(showRssi) { content = "${rssi} dBm"}
+
     Log.d(TAG, "Estimated distance ${distance}")
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -322,9 +339,11 @@ fun ApproachIndicator(approaching: Boolean, rssi: Int) {
                 .size(size)
                 .clip(CircleShape)
                 .background(bgColor)
+                .clickable { showRssi = !showRssi }
         ) {
             Text(
-                "~${distance}m", textAlign = TextAlign.Center,
+                content
+                , textAlign = TextAlign.Center,
                 fontSize = 30.sp,
                 modifier = Modifier
                     .width(size)
@@ -373,7 +392,7 @@ fun DeviceList() {
             }
         }
     } else {
-        Text(LocalContext.current.getString(R.string.measurement_view_scanning))
+        Text(LocalContext.current.getString(R.string.measurement_view_scanning), Modifier.fillMaxSize(), textAlign = TextAlign.Center)
     }
 
 }
