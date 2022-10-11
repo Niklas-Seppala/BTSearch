@@ -137,6 +137,10 @@ class MeasurementViewModel: ViewModel() {
                     // re-trigger scan, as we are now in tracking mode
                     Log.d(TAG, "re-trigger scan")
                     scanDevices(scanner)
+
+                    Log.d(TAG, "Estimated location ${
+                        EstimateLocation.estimateLocation(measurementsList[0], measurementsList[1])
+                    }")
                 }
                 isMeasuring.postValue(false)
 
@@ -162,8 +166,7 @@ class MeasurementViewModel: ViewModel() {
 
                     if(v1 != v2) {
                         deviceIsCloser.postValue(
-                            //changePercentage < 0
-                            v2 > v1
+                            v2 < v1
                         )
                     }
 
@@ -229,7 +232,10 @@ fun MeasurementView(navigation: NavHostController, vm: MeasurementViewModel = vi
                     Text("(${it.xCoord}, ${it.yCoord}, ${it.signalStrength})")
                 }
             }
-            if(measurements.value?.count()?:0 < 2) { MeasurementInstructions() }
+
+            if(measurements.value?.count()?:0 < 2) { MeasurementInstructions() } else {
+                Text(EstimateLocation.estimateLocation(measurements.value!!.get(0), measurements.value!!.get(1)).toString())
+            }
             Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
                 if(canMeasure()) {
                     Button(

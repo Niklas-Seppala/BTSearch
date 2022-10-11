@@ -10,14 +10,14 @@ class EstimateLocation {
     companion object {
         fun estimateLocation(measurementA: Measurement, measurementB: Measurement): Coordinate {
             // https://en.wikipedia.org/wiki/True-range_multilateration
-            var bX = abs(measurementA.xCoord-measurementB.xCoord)*10
-            var bY = abs(measurementA.yCoord-measurementB.yCoord)*10
+            var bX = abs(measurementA.xCoord-measurementB.xCoord)
+            var bY = abs(measurementA.yCoord-measurementB.yCoord)
 
-            val abDistance = distanceFormula(Coordinate(0f, 0f), Coordinate(bX, bY))
+            val abDistance = distanceFormula(Coordinate(measurementB.xCoord, measurementB.yCoord), Coordinate(measurementB.xCoord, measurementB.yCoord))
             Log.d("MeasurementView", "abDistance ${abDistance}")
 
-            val r1 = rssiToMeters(measurementA.signalStrength)
-            val r2 = rssiToMeters(measurementB.signalStrength)
+            val r1 = abs(measurementA.signalStrength)
+            val r2 = abs(measurementB.signalStrength)
             Log.d("MeasurementView", "bX ${bX} bY ${bY}")
             Log.d("MeasurementView", "r1 ${r1} r2 ${r2}")
             // we are going to use the teachings of the "Plug and chug" school of mathematics
