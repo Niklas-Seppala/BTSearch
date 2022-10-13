@@ -2,6 +2,7 @@ package com.asd.btsearch.ui.views
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -61,7 +62,7 @@ class DevicesViewModel(context: Context) : ViewModel() {
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun StatsView(
     scaffoldState: ScaffoldState,
@@ -81,8 +82,9 @@ fun StatsView(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(items = devices.value) {
+            items( items = devices.value, key = {it.id}) {
                 DeviceCard(
+                    modifier = Modifier.animateItemPlacement(),
                     device = it,
                     deviceName = it.name,
                     deviceMac = it.mac,

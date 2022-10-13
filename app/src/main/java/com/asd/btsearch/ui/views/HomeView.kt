@@ -68,7 +68,12 @@ fun HomeView(
 
     LaunchedEffect(Unit) {
         Log.d(TAG, "Setting location callback")
-        locationProviderClient.lastLocation.addOnSuccessListener { location = it }
+        locationProviderClient.lastLocation.addOnSuccessListener {
+            if (location == null) location = it
+            else if (location!!.distanceTo(it) > 2f) {
+                location = it
+            }
+        }
         val locationRequest = LocationRequest.create()
             .setInterval(1000)
             .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
@@ -76,7 +81,12 @@ fun HomeView(
         locationProviderClient.requestLocationUpdates(
             locationRequest, object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
-                    result.locations.forEach { location = it }
+                    result.locations.forEach {
+                        if (location == null) location = it
+                        else if (location!!.distanceTo(it) > 2f) {
+                            location = it
+                        }
+                    }
                 }
             }, Looper.getMainLooper()
         )
