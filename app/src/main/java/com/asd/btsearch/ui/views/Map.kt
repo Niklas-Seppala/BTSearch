@@ -93,6 +93,10 @@ fun Map(
             }
             map.overlays.add(m)
         }
+        location ?: return@LaunchedEffect
+        val currentPosition = GeoPoint(location.latitude, location.longitude)
+        userLocationMarker.position = currentPosition
+        map.overlays.add(userLocationMarker)
     }
 
     AndroidView(
