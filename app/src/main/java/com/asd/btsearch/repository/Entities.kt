@@ -21,7 +21,6 @@ data class DeviceEntity (
             mac = "00-B0-D0-63-C2-26",
             lat = 60.234282,
             lon = 24.834913,
-//            hasImg = true,
             isConnectable = true
         )
     }

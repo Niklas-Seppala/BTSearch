@@ -19,6 +19,7 @@ import org.osmdroid.config.Configuration
 
 class MainActivity : ComponentActivity() {
     private val navEvents = RootEvents()
+
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppRoot(
                         bottomClickHandler = navEvents as BottomBarClickHandler,
-                        locationClient =  fusedLocationClient
+                        locationClient = fusedLocationClient
                     )
                 }
             }

@@ -45,7 +45,6 @@ class PhotoViewModel : ViewModel() {
 fun PhotoView(
     modifier: Modifier = Modifier,
     deviceId: Int,
-    mac: String,
     photoViewModel: PhotoViewModel = PhotoViewModel()
 ) {
     val ctx = LocalContext.current
@@ -57,10 +56,14 @@ fun PhotoView(
 
     Column(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         if (photo == null) {
-            CircularProgressIndicator(modifier = Modifier.size(120.dp))
+            CircularProgressIndicator(
+                modifier = Modifier.size(120.dp),
+                color = MaterialTheme.colors.secondary
+            )
         } else {
             Image(
                 modifier = Modifier

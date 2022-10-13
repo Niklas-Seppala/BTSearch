@@ -25,7 +25,7 @@ fun Views(
     scaffoldState: ScaffoldState,
     locationProviderClient: FusedLocationProviderClient
 ) {
-    if (permissions == null) {  // TODO: Error page?
+    if (permissions == null) {
         Text(text = "Device does not support BLE")
         return
     }
@@ -59,10 +59,10 @@ fun Views(
             )
         }
         composable(Screen.Tracing.baseRoute) {
-            MeasurementView(scaffoldState = scaffoldState,)
+            MeasurementView(scaffoldState = scaffoldState)
         }
         composable(
-            route= "${Screen.Photo.baseRoute}/{deviceId}/{deviceMac}",
+            route = "${Screen.Photo.baseRoute}/{deviceId}/{deviceMac}",
             arguments = listOf(
                 navArgument("deviceId") {
                     type = NavType.IntType
@@ -74,7 +74,6 @@ fun Views(
             PhotoView(
                 modifier = modifier,
                 deviceId = it.arguments?.getInt("deviceId") ?: -1,
-                mac = it.arguments?.getString("deviceMac") ?: "Unknown",
             )
         }
     }

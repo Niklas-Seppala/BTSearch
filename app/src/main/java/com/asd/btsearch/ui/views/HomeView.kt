@@ -85,9 +85,10 @@ fun HomeView(
         onDeviceClicked = {
             scope.launch {
                 val res = scaffoldState.snackbarHostState.showSnackbar(
-                    it.mac, "Go to details", SnackbarDuration.Long)
+                    it.mac, "Go to details", SnackbarDuration.Long
+                )
                 when (res) {
-                    SnackbarResult.Dismissed-> {}
+                    SnackbarResult.Dismissed -> {}
                     SnackbarResult.ActionPerformed -> {
                         navigation.navigate(Screen.Stats.baseRoute)
                     }

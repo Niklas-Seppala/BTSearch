@@ -7,9 +7,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -59,7 +61,6 @@ class DevicesViewModel(context: Context) : ViewModel() {
     }
 }
 
-
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun StatsView(
@@ -69,9 +70,10 @@ fun StatsView(
     devicesViewModel: DevicesViewModel = DevicesViewModel(LocalContext.current)
 ) {
     val devices = devicesViewModel.devices.observeAsState(listOf())
+    val scope = rememberCoroutineScope()
 
     Column(modifier.padding(bottom = 30.dp)) {
-        Button(modifier = Modifier.padding(start =  8.dp),
+        Button(modifier = Modifier.padding(start = 8.dp),
             onClick = { devicesViewModel.DEBUG_ADD_DUMMY_ENTRY() }) {
             Text(text = "Add debug entry")
         }
@@ -87,8 +89,21 @@ fun StatsView(
                     deviceTimestamp = it.timestamp,
                     deviceLat = it.lat,
                     deviceLon = it.lon,
-                    onDelete = { devicesViewModel.delete(it) },
-                    onPhotoSuccess =  {
+                    onDelete = {
+                        scope.launch {
+                            val res = scaffoldState.snackbarHostState.showSnackbar(
+                                "Confirm delete for ${it.mac}?",
+                                "Yes"
+                            )
+                            when(res) {
+                                SnackbarResult.Dismissed -> {}
+                                SnackbarResult.ActionPerformed -> {
+                                    devicesViewModel.delete(it)
+                                }
+                            }
+                        }
+                    },
+                    onPhotoSuccess = {
                         scaffoldState.snackbarHostState.showSnackbar("Image saved");
                         devicesViewModel.attachPhoto(it.id)
                     },

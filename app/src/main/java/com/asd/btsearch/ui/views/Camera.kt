@@ -13,6 +13,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
 import com.asd.btsearch.BuildConfig
 import com.asd.btsearch.R
@@ -33,7 +34,7 @@ fun pictureFilePath(context: Context, deviceId: Int): Pair<Uri, String> {
 }
 
 @Composable
-fun CameraView(
+fun DeviceCameraButton(
     deviceId: Int,
     onSuccess: (suspend () -> Unit)? = null,
     onCancel: (suspend () -> Unit)? = null
@@ -55,7 +56,7 @@ fun CameraView(
                     result?.compress(Bitmap.CompressFormat.JPEG, 80, it)
                 }
                 if (result == null)
-                Log.d(TAG, "Pic for device $deviceId saved.")
+                    Log.d(TAG, "Pic for device $deviceId saved.")
 
                 onSuccess?.invoke()
             } else {
@@ -67,6 +68,9 @@ fun CameraView(
     }
 
     Button(onClick = { cameraLauncher.launch(uri) }) {
-        Icon(painter = painterResource(id = R.drawable.ic_baseline_camera_alt_24), "")
+        Icon(
+            painter = painterResource(id = R.drawable.ic_baseline_camera_alt_24),
+            stringResource(R.string.cameraLaunchDesc)
+        )
     }
 }

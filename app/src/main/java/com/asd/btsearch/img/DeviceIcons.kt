@@ -11,9 +11,24 @@ import java.io.File
 
 const val TAG = "IconProcessor"
 
-private object IconCache {
+/**
+ * Handles device icon caching. Both in-memory and disk.
+ * No stale entry eviction strategy atm.
+ */
+private object DeviceIconCache {
     private val cache = HashMap<String, BitmapDrawable>()
 
+    /**
+     * Tries to fetch icon first from memory cache.
+     * If that fails, checks the disk cache. If icon
+     * is found there, creates [BitmapDrawable] from [Bitmap]
+     * and stores it in memory cache.
+     *
+     * @param ctx [Context] Android context.
+     * @param key [String] Key to the icon.
+     *
+     * @return [BitmapDrawable?] Nullable bitmap
+     */
     suspend fun tryGet(ctx: Context, key: String): BitmapDrawable? {
         var bitmap = cache[key]
         bitmap ?: run {
@@ -37,6 +52,14 @@ private object IconCache {
         return bitmap
     }
 
+    /**
+     * Places specified [BitmapDrawable] object both in-memory and disk
+     * cache.
+     *
+     * @param ctx [Context] Android context.
+     * @param key [String] Icon key
+     * @param bitmap [BitmapDrawable] Bitmap to store.
+     */
     suspend fun cache(ctx: Context, key: String, bitmap: BitmapDrawable) {
         if (!cache.contains(key)) {
             this.cache[key] = bitmap
@@ -54,10 +77,13 @@ private object IconCache {
     }
 }
 
-object IconProcessor {
+/**
+ * Utility object that encapsulates functionality about
+ * working with dynamically generated device icons.
+ */
+object DeviceIcons {
     private data class Dimensions<T : Number>(val width: T, val height: T)
-
-    const val srcIconId = R.drawable.bluetooth_marker
+    private const val srcIconId = R.drawable.bluetooth_marker
     private const val height = 300
     private lateinit var bmIcon: Bitmap
     private var init = true
@@ -72,9 +98,17 @@ object IconProcessor {
         it.color = Color.WHITE
     }
 
-    suspend fun drawIcon(ctx: Context, text: String): BitmapDrawable {
+    /**
+     * Draws new dynamic icon for device.
+     *
+     * @param ctx [Context] Android context
+     * @param mac [String] Device mac-address.
+     *
+     * @return [BitmapDrawable] Resulting bitmap.
+     */
+    suspend fun drawIcon(ctx: Context, mac: String): BitmapDrawable {
         // First check the cache
-        var resultDrawable = IconCache.tryGet(ctx, text)
+        var resultDrawable = DeviceIconCache.tryGet(ctx, mac)
         if (resultDrawable != null) {
             return resultDrawable
         }
@@ -87,7 +121,7 @@ object IconProcessor {
 
         // Store needed dimensions.
         val srcIconDims = Dimensions(bmIcon.width, bmIcon.height)
-        val textDims = Dimensions(textPaint.measureText(text), 34f)
+        val textDims = Dimensions(textPaint.measureText(mac), 34f)
         val resultDims = Dimensions(height, textDims.width.toInt())
 
         // Create new bitmap with enough room for text & src icon.
@@ -107,7 +141,7 @@ object IconProcessor {
             srcIconDims.height + 38f
         )
         canvas.drawRect(ovalRect, rectPaint)
-        canvas.drawText(text, textStartX, srcIconDims.height + textDims.height, textPaint)
+        canvas.drawText(mac, textStartX, srcIconDims.height + textDims.height, textPaint)
 
         // Draw icon
         val iconStartX = 300 / 2 - srcIconDims.width / 2
@@ -118,7 +152,7 @@ object IconProcessor {
         resultDrawable = BitmapDrawable(ctx.resources, workingCopy)
 
         // Cache bitmap for further use.
-        IconCache.cache(ctx, text, resultDrawable)
+        DeviceIconCache.cache(ctx, mac, resultDrawable)
 
         return resultDrawable
     }

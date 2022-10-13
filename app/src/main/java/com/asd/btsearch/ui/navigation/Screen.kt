@@ -4,7 +4,7 @@ internal sealed class Screen(private val route: String) {
     object Home : Screen("home")
     object Stats : Screen("stats")
     object Tracing : Screen("tracing")
-    object Photo: Screen(route = "photo")
+    object Photo : Screen(route = "photo")
 
     val baseRoute = route
 

@@ -9,7 +9,7 @@ class EstimateLocation {
 
     companion object {
         /**
-         * Employes trilateration to roughly estimate a location of a bluetooth device
+         * Employs trilateration to roughly estimate a location of a bluetooth device
          * based on two measurements containing the signal strength values and the locations they were measured at
          * @param measurementA the first measurement
          * @param measurementB the second measurement
@@ -17,10 +17,13 @@ class EstimateLocation {
          */
         fun estimateLocation(measurementA: Measurement, measurementB: Measurement): Coordinate {
             // https://en.wikipedia.org/wiki/True-range_multilateration
-            val bX = abs(measurementA.xCoord-measurementB.xCoord)
-            val bY = abs(measurementA.yCoord-measurementB.yCoord)
+            val bX = abs(measurementA.xCoord - measurementB.xCoord)
+            val bY = abs(measurementA.yCoord - measurementB.yCoord)
 
-            val abDistance = distanceFormula(Coordinate(measurementB.xCoord, measurementB.yCoord), Coordinate(measurementB.xCoord, measurementB.yCoord))
+            val abDistance = distanceFormula(
+                Coordinate(measurementB.xCoord, measurementB.yCoord),
+                Coordinate(measurementB.xCoord, measurementB.yCoord)
+            )
             Log.d("MeasurementView", "abDistance $abDistance")
 
             val r1 = abs(measurementA.signalStrength)
@@ -30,7 +33,7 @@ class EstimateLocation {
             // we are going to use the teachings of the "Plug and chug" school of mathematics
             val unknownY = (
                     ((r1.pow(2) - r2.pow(2)) + abDistance.pow(2)) / (abDistance * 2)
-            )
+                    )
 
             val unknownX = sqrt(
                 r1.pow(2) - (unknownY).pow(2)

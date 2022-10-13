@@ -15,7 +15,8 @@ import com.asd.btsearch.ui.theme.BTSearchTheme
 
 @Composable
 fun AppTitle(modifier: Modifier = Modifier) {
-    Row(modifier = modifier,
+    Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

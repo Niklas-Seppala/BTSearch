@@ -39,7 +39,7 @@ fun AppRoot(
         snackbarHost = {
             SnackbarHost(it) { data ->
                 Snackbar(
-                    actionColor = Orange200,
+                    actionColor = MaterialTheme.colors.primaryVariant,
                     snackbarData = data
                 )
             }

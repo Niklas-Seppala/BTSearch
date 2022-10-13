@@ -44,9 +44,9 @@ object Permissions {
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun rememberPermissionState() : MultiplePermissionsState? {
+fun rememberPermissionState(): MultiplePermissionsState? {
     if (LocalContext.current.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-        Log.d(TAG,"Device supports BTLE.")
+        Log.d(TAG, "Device supports BTLE.")
     } else {
         Log.e(TAG, "Device does not support BTLE.")
         return null
@@ -72,7 +72,7 @@ fun rememberPermissionState() : MultiplePermissionsState? {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 Log.d(TAG, "Requesting permissions: " +
-                        permissionState.permissions.joinToString {"${it.permission} "}
+                        permissionState.permissions.joinToString { "${it.permission} " }
                 )
                 permissionState.launchMultiplePermissionRequest()
             }

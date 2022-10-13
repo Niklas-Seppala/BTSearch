@@ -28,5 +28,8 @@
     <string name="measurement_view_distance_estimate">Estimated distance</string>
     <string name="measurement_view_device_saved">Device saved successfully</string>
     <string name="photoViewDesc">Image of the device location</string>
+    <string name="cameraLaunchDesc">Take a picture of device</string>
+    <string name="displayImageButtonDesc">Display device picture.</string>
+    <string name="deviceLocationIconDesc">Device location</string>
 
 </resources>

@@ -9,8 +9,9 @@ import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorPalette = darkColors(
-    primary = Blue500,
-    primaryVariant = Blue700,
+    primary = BlueDark,
+    onPrimary=Color.White,
+    primaryVariant = Blue500,
     secondary = Orange500
 )
 
@@ -20,13 +21,6 @@ private val LightColorPalette = lightColors(
     secondary = Orange500,
     background = EggShell,
     onSecondary = Color.White,
-
-    /* Other default colors to override
-    surface = Color.White,
-    onPrimary = Color.White,
-    onBackground = Color.Black,
-    onSurface = Color.Black,
-    */
 )
 
 @Composable
@@ -44,5 +38,7 @@ fun BTSearchTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
         content = content
     )
 
-    rememberSystemUiController().setStatusBarColor(colors.primaryVariant)
+    rememberSystemUiController().setStatusBarColor(
+        if (darkTheme) colors.primary else colors.primaryVariant
+    )
 }

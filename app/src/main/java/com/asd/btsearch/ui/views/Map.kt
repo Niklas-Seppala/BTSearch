@@ -1,7 +1,5 @@
 package com.asd.btsearch.ui.views
 
-import android.graphics.*
-import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.util.Log
 import androidx.compose.runtime.*
@@ -9,9 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.asd.btsearch.R
-import com.asd.btsearch.img.IconProcessor
+import com.asd.btsearch.img.DeviceIcons
 import com.asd.btsearch.repository.DeviceEntity
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -73,12 +70,19 @@ fun Map(
     val context = LocalContext.current
     LaunchedEffect(devices) {
         map.overlays.forEach { map.overlays.remove(it) }
+
+        if (location != null) {
+            val currentPosition = GeoPoint(location.latitude, location.longitude)
+            userLocationMarker.position = currentPosition
+            map.overlays.add(userLocationMarker)
+        }
+
         devices.forEach { device ->
             val m = Marker(map)
             m.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
 
             this.launch {
-                m.icon = IconProcessor.drawIcon(context, device.mac)
+                m.icon = DeviceIcons.drawIcon(context, device.mac)
             }
 
             m.position = GeoPoint(device.lat, device.lon)
@@ -89,10 +93,6 @@ fun Map(
             }
             map.overlays.add(m)
         }
-        location ?: return@LaunchedEffect
-        val currentPosition = GeoPoint(location.latitude, location.longitude)
-        userLocationMarker.position = currentPosition
-        map.overlays.add(userLocationMarker)
     }
 
     AndroidView(
@@ -107,7 +107,6 @@ fun Map(
         }
 
         location ?: return@AndroidView
-
         // Marker.
         val currentPosition = GeoPoint(location.latitude, location.longitude)
         userLocationMarker.position = currentPosition

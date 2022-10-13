@@ -10,8 +10,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +32,6 @@ fun DeviceCard(
     deviceTimestamp: Long?,
     deviceLat: Double?,
     deviceLon: Double?,
-    deviceConnectable: Boolean? = false,
     onPhotoSuccess: (suspend () -> Unit)? = null,
     onPhotoError: (suspend () -> Unit)? = null,
     onPhotoClick: (() -> Unit)? = null,
@@ -80,14 +79,21 @@ fun DeviceCard(
                         )
                     }
                     Row {
-                        DisplayImage(device = device, onClick = onPhotoClick, modifier = Modifier.padding(end = 8.dp))
+                        DisplayDeviceImageButton(
+                            device = device,
+                            onClick = onPhotoClick,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
                         device?.also {
-                            CameraView(deviceId = it.id, onSuccess = onPhotoSuccess, onCancel = onPhotoError)
+                            DeviceCameraButton(
+                                deviceId = it.id,
+                                onSuccess = onPhotoSuccess,
+                                onCancel = onPhotoError
+                            )
                         }
                     }
                     if (deviceLat != null && deviceLon != null) {
-                        Location(
-                            device = device,
+                        DeviceLocationButton(
                             deviceLat = deviceLat,
                             deviceLon = deviceLon,
                             onClick = onJumpToLocation
@@ -102,7 +108,6 @@ fun DeviceCard(
                                 deviceTimestamp
                             )
                         ),
-                        color = Color(0x88000000),
                         fontStyle = FontStyle.Italic,
                         fontSize = 13.sp
                     )
@@ -114,7 +119,7 @@ fun DeviceCard(
 }
 
 @Composable
-private fun DisplayImage(
+private fun DisplayDeviceImageButton(
     modifier: Modifier = Modifier,
     device: DeviceEntity?,
     onClick: (() -> Unit)?
@@ -127,7 +132,7 @@ private fun DisplayImage(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_baseline_photo_24),
-                    contentDescription = ""
+                    contentDescription = stringResource(R.string.displayImageButtonDesc)
                 )
             }
         }
@@ -135,9 +140,8 @@ private fun DisplayImage(
 }
 
 @Composable
-private fun Location(
+private fun DeviceLocationButton(
     modifier: Modifier = Modifier,
-    device: DeviceEntity?,
     deviceLat: Double?,
     deviceLon: Double?,
     onClick: (() -> Unit)? = null
@@ -147,7 +151,7 @@ private fun Location(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_baseline_location_24),
-                    contentDescription = ""
+                    contentDescription = stringResource(R.string.deviceLocationIconDesc)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "${deviceLat}, ${deviceLon}")

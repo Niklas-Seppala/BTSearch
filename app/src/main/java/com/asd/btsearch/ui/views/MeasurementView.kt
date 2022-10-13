@@ -13,7 +13,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +42,8 @@ import com.asd.btsearch.classes.EstimateLocation
 import com.asd.btsearch.classes.Measurement
 import com.asd.btsearch.repository.DeviceDatabase
 import com.asd.btsearch.repository.DeviceEntity
+import com.asd.btsearch.ui.theme.Green200
+import com.asd.btsearch.ui.theme.Red200
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -54,10 +58,7 @@ import java.text.DecimalFormat
 private const val TAG = "MeasurementView"
 private const val MINIMUM_SAVE_DISTANCE = 1.0
 
-
-class MeasurementViewModel: ViewModel() {
-
-
+class MeasurementViewModel : ViewModel() {
     private var _measurements = MutableLiveData<List<Measurement>>(mutableListOf())
     var measurements: MutableLiveData<List<Measurement>> = _measurements
 
@@ -76,6 +77,7 @@ class MeasurementViewModel: ViewModel() {
     val deviceDistance = MutableLiveData(0f)
 
     private val deviceRssiHistoryLength = 5
+
     // list of the past signal strength values we've gotten from the device
     // used to determine if we are getting closer or going away from the device
     private var deviceRssiHistory = MutableLiveData<List<Int>>(listOf())
@@ -89,7 +91,8 @@ class MeasurementViewModel: ViewModel() {
      */
     fun saveDevice(device: ScanResult, act: Activity, scaffoldState: ScaffoldState) {
         val db = DeviceDatabase.get(act.baseContext).deviceDao()
-        val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(act.baseContext)
+        val fusedLocationClient: FusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(act.baseContext)
         getLocation(act, fusedLocationClient, onSuccessListener = {
 
             val saveMessage = act.baseContext.getString(R.string.measurement_view_device_saved)
@@ -105,10 +108,13 @@ class MeasurementViewModel: ViewModel() {
                         isConnectable = device.isConnectable
                     )
                 )
-                scaffoldState.snackbarHostState.showSnackbar(saveMessage, null, SnackbarDuration.Long)
+                scaffoldState.snackbarHostState.showSnackbar(
+                    saveMessage,
+                    null,
+                    SnackbarDuration.Long
+                )
             }
         })
-
     }
 
     /**
@@ -122,7 +128,6 @@ class MeasurementViewModel: ViewModel() {
         Log.d(TAG, "SCANDEVICES CALLED")
 
         viewModelScope.launch(Dispatchers.IO) {
-            //scanResults.postValue(listOf())
             isScanning.postValue(true)
 
             val settings = ScanSettings.Builder()
@@ -131,7 +136,7 @@ class MeasurementViewModel: ViewModel() {
                 .build()
             scanner.startScan(null, settings, leScanCallback)
             var period = scanPeriodSearch
-            if(chosenDevice.value != null) {
+            if (chosenDevice.value != null) {
                 period = scanPeriodTracing
             }
             delay(period)
@@ -140,34 +145,36 @@ class MeasurementViewModel: ViewModel() {
             scanResults.postValue(mResults.values.toList())
             Log.d(TAG, "Scanresults ${scanResults.value}")
             isScanning.postValue(false)
-            Log.d(TAG, "Scan in progress chosenDevice: ${chosenDevice.value}, measurement count = ${_measurements.value?.count()}]}")
-            if(
+            Log.d(
+                TAG,
+                "Scan in progress chosenDevice: ${chosenDevice.value}, measurement count = ${_measurements.value?.count()}]}"
+            )
+            if (
                 chosenDevice.value != null /*&& (isMeasuring.value == true || _measurements.value?.count()?:0 == 2)*/
             ) {
                 // add measurement here when we can be sure its updated
-                val device = scanResults.value?.find { it.device.address == chosenDevice.value?.device?.address }
+                val device =
+                    scanResults.value?.find { it.device.address == chosenDevice.value?.device?.address }
 
                 val _deviceRssiHistory = deviceRssiHistory.value?.toMutableList()
 
                 // remove the oldest signal strength value
-                if((_deviceRssiHistory?.count() ?: 0) > deviceRssiHistoryLength) {
+                if ((_deviceRssiHistory?.count() ?: 0) > deviceRssiHistoryLength) {
                     _deviceRssiHistory?.removeFirst()
                 }
                 _deviceRssiHistory?.add(device?.rssi ?: 0)
 
                 deviceRssiHistory.postValue(_deviceRssiHistory?.toList())
-
                 chosenDevice.postValue(device)
 
                 // determine if we are getting closer or not by determining the change in signal strength
-                if((deviceRssiHistory.value?.count() ?: 0) >= 2) {
+                if ((deviceRssiHistory.value?.count() ?: 0) >= 2) {
 
                     val distance = EstimateLocation.rssiToMeters(device?.rssi?.toFloat() ?: 0f)
 
                     // estimate the distance over the average of the last few rssi values acquired
                     Log.d(TAG, "Updating devicedistance $distance")
                     deviceDistance.postValue(distance)
-
                 }
 
                 // re-trigger scan, as we are now in tracking mode
@@ -190,109 +197,104 @@ class MeasurementViewModel: ViewModel() {
             Log.d("MyApp", "Device address: $deviceAddress (${result.isConnectable})")
         }
     }
-
 }
-
 
 
 lateinit var btManager: BluetoothManager
 lateinit var btAdapter: BluetoothAdapter
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MeasurementView(
     vm: MeasurementViewModel = viewModel(),
     scaffoldState: ScaffoldState
 ) {
-
     val act = LocalContext.current as Activity
     btManager = act.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     btAdapter = btManager.adapter
 
-
     Box(Modifier.fillMaxSize()) {
-
-
         val chosenDevice = vm.chosenDevice.observeAsState()
         val isScanning = vm.isScanning.observeAsState(false)
         val deviceDistance = vm.deviceDistance.observeAsState()
 
         val scanResults = vm.scanResults.observeAsState(listOf())
         Log.d(TAG, "ChosenDevice ${chosenDevice.value}")
-        Column (horizontalAlignment = Alignment.CenterHorizontally){
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-            if(chosenDevice.value != null){
+            if (chosenDevice.value != null) {
                 Spacer(Modifier.fillMaxWidth(0.10f))
                 DeviceInfo(chosenDevice.value!!, act, vm, scaffoldState)
-
-                DistanceIndicator(chosenDevice.value!!, deviceDistance.value?:0f)
+                DistanceIndicator(chosenDevice.value!!, deviceDistance.value ?: 0f)
             }
 
-            Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()){
-
-                Button(onClick = {
+            Button(
+                modifier = Modifier.padding(top = 8.dp),
+                onClick = {
                     if (chosenDevice.value != null) {
                         vm.chosenDevice.postValue(null)
                         vm.measurements.postValue(listOf())
                     }
                     vm.scanDevices(btAdapter.bluetoothLeScanner)
-
-                }, enabled = (
-                        !isScanning.value || chosenDevice.value != null
-                        )
-                ) {
-                    if (chosenDevice.value == null) {
-                        Text(LocalContext.current.getString(R.string.measurement_view_scan))
-                    } else {
-                        Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
-                    }
+                }, enabled = (!isScanning.value || chosenDevice.value != null)
+            ) {
+                if (chosenDevice.value == null) {
+                    Text(LocalContext.current.getString(R.string.measurement_view_scan))
+                } else {
+                    Text(LocalContext.current.getString(R.string.measurement_view_switch_device))
                 }
-
             }
 
-            if(chosenDevice.value == null) {
+            if (chosenDevice.value == null) {
                 Log.d(TAG, "Showing deviceList with ${scanResults.value ?: 0} results")
 
-                if(!isScanning.value) {
-                    DeviceList(scanResults.value?:listOf(), onChooseDevice = {
+                if (!isScanning.value) {
+                    DeviceList(scanResults.value ?: listOf(), onChooseDevice = {
                         vm.chosenDevice.postValue(it)
                         vm.scanDevices(btAdapter.bluetoothLeScanner)
                     })
+                } else {
+                    Column(modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        Surface(modifier = Modifier.padding(16.dp)) {
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .height(32.dp)
+                                    .fillMaxWidth(),
+                                color = Green200
+                            )
+                        }
+                    }
                 }
-                else {
-                    Text(LocalContext.current.getString(R.string.measurement_view_scanning), Modifier.fillMaxSize(), textAlign = TextAlign.Center)
-                }
-            }
-            else {
+            } else {
                 Text(LocalContext.current.getString(R.string.measurement_view_distance_instruction))
             }
-
-
         }
-
     }
 }
 
 @SuppressLint("MissingPermission")
 @Composable
-fun DeviceInfo(device: ScanResult, act:Activity, vm: MeasurementViewModel, scaffoldState: ScaffoldState) {
+fun DeviceInfo(
+    device: ScanResult,
+    act: Activity,
+    vm: MeasurementViewModel,
+    scaffoldState: ScaffoldState
+) {
     val distance = vm.deviceDistance.observeAsState()
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         DeviceCard(
             device = null,
             deviceName = device.scanRecord?.deviceName ?: "Unknown",
             deviceMac = device.device.address,
-            deviceConnectable = device.isConnectable,
             deviceTimestamp = null,
             deviceLat = null,
             deviceLon = null,
         ) {}
-        if(distance.value!! <= MINIMUM_SAVE_DISTANCE) {
+        if (distance.value!! <= MINIMUM_SAVE_DISTANCE) {
             Log.d(TAG, "DeviceDistance ${distance.value}")
             Button(onClick = {
                 vm.saveDevice(device, act, scaffoldState)
-
-
             }) {
                 Text("Save this device")
             }
@@ -304,23 +306,26 @@ fun DeviceInfo(device: ScanResult, act:Activity, vm: MeasurementViewModel, scaff
 @Composable
 fun DistanceIndicator(device: ScanResult, distance: Float) {
     val size = 200.dp
-    var bgColor = Color.Red // TODO: Better colors
+    var bgColor = Red200
     val df = DecimalFormat("#.##")
     df.roundingMode = RoundingMode.DOWN
 
     if (distance <= MINIMUM_SAVE_DISTANCE) {
-        bgColor = Color.Green
+        bgColor = Green200
     }
-
 
     var showRssi by remember { mutableStateOf(false) }
     var content = "~${df.format(distance)}m"
-    if(showRssi) { content = "${device.rssi} dBm"}
+    if (showRssi) {
+        content = "${device.rssi} dBm"
+    }
 
     Log.d(TAG, "Estimated distance $distance")
-    Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize(Alignment.Center)) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.Center)
+    ) {
         Box(
             modifier = Modifier
                 .size(size)
@@ -329,8 +334,7 @@ fun DistanceIndicator(device: ScanResult, distance: Float) {
                 .clickable { showRssi = !showRssi }
         ) {
             Text(
-                content
-                , textAlign = TextAlign.Center,
+                content, textAlign = TextAlign.Center,
                 fontSize = 30.sp,
                 modifier = Modifier
                     .width(size)
@@ -342,44 +346,58 @@ fun DistanceIndicator(device: ScanResult, distance: Float) {
 }
 
 @Composable
-fun DeviceList(scanResults: List<ScanResult>, onChooseDevice: (device:ScanResult) -> Unit) {
-
-    LazyColumn(Modifier
-        .fillMaxWidth()
-        .fillMaxHeight(0.75f)
-        .padding(horizontal = 5.dp)) {
+fun DeviceList(scanResults: List<ScanResult>, onChooseDevice: (device: ScanResult) -> Unit) {
+    LazyColumn(
+        Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.75f)
+            .padding(horizontal = 5.dp)
+    ) {
         items(scanResults.sortedBy { -it.rssi }) {
             CompactDeviceCard(it, onChooseDevice)
             Spacer(Modifier.padding(2.dp))
         }
     }
-
 }
 
 @Composable
 fun CompactDeviceCard(device: ScanResult, onChooseDevice: (device: ScanResult) -> Unit = {}) {
-
     val df = DecimalFormat("#.##")
     df.roundingMode = RoundingMode.DOWN
     val distance = df.format(EstimateLocation.rssiToMeters(device.rssi.toFloat()))
 
-
     Card(modifier = Modifier.fillMaxWidth()) {
-        Row(horizontalArrangement=Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier=Modifier.padding(5.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(5.dp)
+        ) {
             Column(Modifier.fillMaxWidth(0.70f)) {
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(LocalContext.current.getString(R.string.measurement_view_device_name))
                     Text(device.scanRecord?.deviceName ?: "Unknown")
                 }
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(LocalContext.current.getString(R.string.measurement_view_device_address))
                     Text(device.device.address)
                 }
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(LocalContext.current.getString(R.string.measurement_view_signal_strength))
                     Text(device.rssi.toString())
                 }
-                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier=Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(LocalContext.current.getString(R.string.measurement_view_distance_estimate))
                     Text("${distance}m")
                 }
@@ -389,24 +407,29 @@ fun CompactDeviceCard(device: ScanResult, onChooseDevice: (device: ScanResult) -
                 Text(LocalContext.current.getString(R.string.measurement_view_choose))
             }
         }
-
     }
 }
 
 /**
  * Pings for the current location of the user's device
  */
-fun getLocation(act: Activity, locationClient: FusedLocationProviderClient, onSuccessListener: (location: Location) -> Unit) {
-
-    if (ActivityCompat.checkSelfPermission(act,
-            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+fun getLocation(
+    act: Activity,
+    locationClient: FusedLocationProviderClient,
+    onSuccessListener: (location: Location) -> Unit
+) {
+    if (ActivityCompat.checkSelfPermission(
+            act,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
             act.baseContext,
-            Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
     ) {
-
         return
     }
     @Suppress("DEPRECATION")
-    locationClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token).addOnSuccessListener(onSuccessListener)
+    locationClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
+        .addOnSuccessListener(onSuccessListener)
 }
 
