@@ -53,7 +53,6 @@ fun AppRoot(
             }
         },
         floatingActionButton = {
-
             FloatingActionButton( onClick = bottomClickHandler::onBottomRightClick) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_baseline_bluetooth_search_32),

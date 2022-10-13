@@ -11,7 +11,7 @@ class RootEvents : TopBarClickHandler, BottomBarClickHandler, Navigable {
     private lateinit var navController: NavHostController
 
     override fun onBottomLeftClick() {
-        navigateTo(Screen.Tracing.baseRoute)
+        navigateTo(Screen.Stats.baseRoute)
     }
 
     override fun onBottomCenterClick() {
@@ -19,7 +19,7 @@ class RootEvents : TopBarClickHandler, BottomBarClickHandler, Navigable {
     }
 
     override fun onBottomRightClick() {
-        navigateTo(Screen.Stats.baseRoute)
+        navigateTo(Screen.Tracing.baseRoute)
     }
 
     override fun onSettingsClick() {
