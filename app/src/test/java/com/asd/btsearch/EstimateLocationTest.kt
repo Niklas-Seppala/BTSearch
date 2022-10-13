@@ -21,8 +21,8 @@ class EstimateLocationTest {
             Measurement(Coordinate(0f,10f), -80f)
         )
 
-        assertTrue((location.x >= 3.4f && location.x <= 3.5f))
-        assertTrue(location.y >= 10.6f && location.y <= 10.7f)
+        assertTrue(location.x in 3.4f..3.5f)
+        assertTrue(location.y in 10.6f..10.7f)
     }
 
     @Test
