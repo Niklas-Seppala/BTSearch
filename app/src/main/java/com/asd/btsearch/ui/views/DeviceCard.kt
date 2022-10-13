@@ -6,6 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,11 @@ fun DeviceCard(
     deviceTimestamp: Long?,
     deviceLat: Double?,
     deviceLon: Double?,
-    onJumpToLocation: () -> Unit,
+    deviceConnectable: Boolean? = false,
+    onPhotoSuccess: (suspend () -> Unit)? = null,
+    onPhotoError: (suspend () -> Unit)? = null,
+    onPhotoClick: (() -> Unit)? = null,
+    onJumpToLocation: (() -> Unit)? = null,
     onDelete: () -> Unit
 ) {
     Card(
@@ -53,10 +58,10 @@ fun DeviceCard(
         ) {
             Column(Modifier.padding(8.dp)) {
                 Row {
-                    Text(text = deviceName?:"Unknown", style = MaterialTheme.typography.h4)
+                    Text(text = deviceName ?: "Unknown", style = MaterialTheme.typography.h4)
                     Spacer(modifier = Modifier.weight(1.0f))
 
-                    if(device != null) {
+                    if (device != null) {
                         IconButton(onClick = onDelete) {
                             Icon(Icons.Filled.Delete, "Delete this device")
                         }
@@ -67,19 +72,36 @@ fun DeviceCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = "Connectable")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Filled.Check, "", modifier = Modifier.height(18.dp))
+                        Icon(
+                            if (device?.isConnectable == true) Icons.Filled.Check
+                            else Icons.Filled.Lock,
+                            "",
+                            modifier = Modifier.height(18.dp)
+                        )
                     }
-                    if(deviceLat != null && deviceLon != null) {
-                        Location(device = device,
+                    Row {
+                        DisplayImage(device = device, onClick = onPhotoClick, modifier = Modifier.padding(end = 8.dp))
+                        device?.also {
+                            CameraView(deviceId = it.id, onSuccess = onPhotoSuccess, onCancel = onPhotoError)
+                        }
+                    }
+                    if (deviceLat != null && deviceLon != null) {
+                        Location(
+                            device = device,
                             deviceLat = deviceLat,
                             deviceLon = deviceLon,
-                            onClick = onJumpToLocation)
+                            onClick = onJumpToLocation
+                        )
                     }
                 }
-                if(deviceTimestamp != null) {
+                if (deviceTimestamp != null) {
                     Text(
                         modifier = Modifier.align(Alignment.End),
-                        text = DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochSecond(deviceTimestamp)),
+                        text = DateTimeFormatter.ISO_INSTANT.format(
+                            Instant.ofEpochSecond(
+                                deviceTimestamp
+                            )
+                        ),
                         color = Color(0x88000000),
                         fontStyle = FontStyle.Italic,
                         fontSize = 13.sp
@@ -92,15 +114,36 @@ fun DeviceCard(
 }
 
 @Composable
+private fun DisplayImage(
+    modifier: Modifier = Modifier,
+    device: DeviceEntity?,
+    onClick: (() -> Unit)?
+) {
+    device ?: return
+    if (!device.hasImg) return
+
+    Surface(modifier = modifier) {
+        Button(onClick = onClick ?: {}) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_baseline_photo_24),
+                    contentDescription = ""
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun Location(
     modifier: Modifier = Modifier,
     device: DeviceEntity?,
     deviceLat: Double?,
     deviceLon: Double?,
-    onClick: () -> Unit
+    onClick: (() -> Unit)? = null
 ) {
     Surface(modifier = modifier) {
-        Button(onClick = onClick) {
+        Button(onClick = onClick ?: {}) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_baseline_location_24),
@@ -126,7 +169,8 @@ private fun DeviceCardPreview() {
                 deviceLat = DeviceEntity.Example.lat,
                 deviceLon = DeviceEntity.Example.lon,
                 onDelete = {},
-                onJumpToLocation = {}
+                onJumpToLocation = {},
+                onPhotoClick = {}
             )
         }
     }

@@ -7,7 +7,7 @@ import com.asd.btsearch.ui.navigation.Screen
 
 private const val TAG = "RootEvents"
 
-class RootEvents : TopBarClickHandler, BottomBarClickHandler, Navigable {
+class RootEvents : BottomBarClickHandler, Navigable {
     private lateinit var navController: NavHostController
 
     override fun onBottomLeftClick() {
@@ -20,10 +20,6 @@ class RootEvents : TopBarClickHandler, BottomBarClickHandler, Navigable {
 
     override fun onBottomRightClick() {
         navigateTo(Screen.Tracing.baseRoute)
-    }
-
-    override fun onSettingsClick() {
-        navigateTo(Screen.Settings.baseRoute)
     }
 
     override fun setNavController(navController: NavHostController) {

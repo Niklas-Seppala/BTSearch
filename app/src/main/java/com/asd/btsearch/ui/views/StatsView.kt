@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "StatsView"
 
-
 class DevicesViewModel(context: Context) : ViewModel() {
     private val db = DeviceDatabase.get(context).deviceDao()
     val devices = db.getEntries()
@@ -44,6 +43,12 @@ class DevicesViewModel(context: Context) : ViewModel() {
                     isConnectable = true
                 )
             )
+        }
+    }
+
+    fun attachPhoto(deviceId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            db.toggleImage(deviceId, true)
         }
     }
 
@@ -83,6 +88,17 @@ fun StatsView(
                     deviceLat = it.lat,
                     deviceLon = it.lon,
                     onDelete = { devicesViewModel.delete(it) },
+                    onPhotoSuccess =  {
+                        scaffoldState.snackbarHostState.showSnackbar("Image saved");
+                        devicesViewModel.attachPhoto(it.id)
+                    },
+                    onPhotoError = {
+                        scaffoldState.snackbarHostState.showSnackbar("Could not attach image");
+                    },
+                    onPhotoClick = {
+                        Log.d(TAG, "navigate to photo")
+                        navigation.navigate(Screen.Photo.withArgs("${it.id}", it.mac))
+                    },
                     onJumpToLocation = {
                         navigation.navigate(Screen.Home.withArgs("${it.id}"))
                     })

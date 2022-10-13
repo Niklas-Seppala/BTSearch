@@ -2,11 +2,8 @@ package com.asd.btsearch
 
 
 import android.annotation.SuppressLint
-import android.content.res.*
 import android.content.Context
-import android.location.LocationRequest
 import android.os.Bundle
-import android.renderscript.RenderScript
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -14,11 +11,9 @@ import androidx.compose.material.*
 import androidx.compose.ui.Modifier
 import com.asd.btsearch.ui.events.BottomBarClickHandler
 import com.asd.btsearch.ui.events.RootEvents
-import com.asd.btsearch.ui.events.TopBarClickHandler
 import com.asd.btsearch.ui.theme.BTSearchTheme
 import com.asd.btsearch.ui.views.AppRoot
 import com.google.android.gms.location.*
-import org.osmdroid.config.*
 import org.osmdroid.config.Configuration
 
 
@@ -39,7 +34,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     AppRoot(
-                        topBarClickHandler = navEvents as TopBarClickHandler,
                         bottomClickHandler = navEvents as BottomBarClickHandler,
                         locationClient =  fusedLocationClient
                     )

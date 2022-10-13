@@ -62,12 +62,17 @@ fun Map(
         map.overlays.add(userLocationMarker)
 
         map.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+
+        location ?: return
+        val currentPosition = GeoPoint(location.latitude, location.longitude)
+        map.controller.animateTo(currentPosition)
+
         mapInitialized = true
     }
+
     val context = LocalContext.current
     LaunchedEffect(devices) {
         map.overlays.forEach { map.overlays.remove(it) }
-        map.overlays.add(userLocationMarker)
         devices.forEach { device ->
             val m = Marker(map)
             m.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
@@ -84,6 +89,10 @@ fun Map(
             }
             map.overlays.add(m)
         }
+        location ?: return@LaunchedEffect
+        val currentPosition = GeoPoint(location.latitude, location.longitude)
+        userLocationMarker.position = currentPosition
+        map.overlays.add(userLocationMarker)
     }
 
     AndroidView(
@@ -98,10 +107,9 @@ fun Map(
         }
 
         location ?: return@AndroidView
-        val currentPosition = GeoPoint(location.latitude, location.longitude)
-        it.controller.setCenter(currentPosition)
 
         // Marker.
+        val currentPosition = GeoPoint(location.latitude, location.longitude)
         userLocationMarker.position = currentPosition
 
         if (!mapInitialized) mapInitialized = true
