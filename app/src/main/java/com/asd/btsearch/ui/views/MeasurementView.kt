@@ -82,6 +82,11 @@ class MeasurementViewModel: ViewModel() {
 
     private val mResults = java.util.HashMap<String, ScanResult>()
 
+    /**
+     * Saves the Bluetooth device described by the [ScanResult] object to the local Room database
+     *
+     * @param device the [ScanResult] describing the chosen Bluetooth device
+     */
     fun saveDevice(device: ScanResult, act: Activity, scaffoldState: ScaffoldState) {
         val db = DeviceDatabase.get(act.baseContext).deviceDao()
         val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(act.baseContext)
@@ -106,6 +111,11 @@ class MeasurementViewModel: ViewModel() {
 
     }
 
+    /**
+     * Performs a Bluetooth scan and checks up on the Bluetooth device current being tracked if one is chosen
+     *
+     * @param scanner the [BluetoothLeScanner] object being used to perform the scan
+     */
     // suppress because we are going to ask them in MainActivity
     @SuppressLint("MissingPermission")
     fun scanDevices(scanner: BluetoothLeScanner) {
@@ -167,6 +177,9 @@ class MeasurementViewModel: ViewModel() {
         }
     }
 
+    /**
+     * The callback method for the Bluetooth scan
+     */
     private val leScanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
 
@@ -191,8 +204,6 @@ fun MeasurementView(
     vm: MeasurementViewModel = viewModel(),
     scaffoldState: ScaffoldState
 ) {
-    Log.d(TAG, "VIEW CALLED")
-
 
     val act = LocalContext.current as Activity
     btManager = act.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -244,8 +255,7 @@ fun MeasurementView(
 
                 if(!isScanning.value) {
                     DeviceList(scanResults.value?:listOf(), onChooseDevice = {
-                        vm.chosenDevice.postValue(it); scanDevice()
-
+                        vm.chosenDevice.postValue(it)
                         vm.scanDevices(btAdapter.bluetoothLeScanner)
                     })
                 }
@@ -333,8 +343,6 @@ fun DistanceIndicator(device: ScanResult, distance: Float) {
 
 @Composable
 fun DeviceList(scanResults: List<ScanResult>, onChooseDevice: (device:ScanResult) -> Unit) {
-    //val isScanning = vm.isScanning.observeAsState(false)
-    //val scanResults: List<ScanResult> by vm.scanResults.observeAsState(listOf())
 
     LazyColumn(Modifier
         .fillMaxWidth()
@@ -385,26 +393,9 @@ fun CompactDeviceCard(device: ScanResult, onChooseDevice: (device: ScanResult) -
     }
 }
 
-/*
-@Composable
-fun MeasurementInstructions() {
-    var measurements = viewModel.measurements.observeAsState()
-    var chosenDevice = viewModel.chosenDevice.observeAsState()
-
-    var text = LocalContext.current.getString(R.string.measurement_view_instruction_1)
-
-    // TODO: implement possibility for more than 2 messages, use an array
-    if(chosenDevice.value != null) {
-        if (measurements.value?.count() == 0) {
-            text = LocalContext.current.getString(R.string.measurement_view_instruction_2)
-        } else if (measurements.value?.count() == 1) {
-            text = LocalContext.current.getString(R.string.measurement_view_instruction_3)
-        }
-    }
-
-    Text(text, textAlign = TextAlign.Center)
-}*/
-
+/**
+ * Pings for the current location of the user's device
+ */
 fun getLocation(act: Activity, locationClient: FusedLocationProviderClient, onSuccessListener: (location: Location) -> Unit) {
 
     if (ActivityCompat.checkSelfPermission(act,
@@ -419,43 +410,3 @@ fun getLocation(act: Activity, locationClient: FusedLocationProviderClient, onSu
     locationClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token).addOnSuccessListener(onSuccessListener)
 }
 
-fun scanDevice() {
-    /**
-     * Scans for bluetooth devices nearby and fetches the RSSI value for the chosen device
-     */
-    // re-initiate a scan
-
-    //var device = viewModel.chosenDevice.value
-    // find the device we want via MAC address
-}
-
-/*
-fun canMeasure():Boolean {
-    if(viewModel.chosenDevice.value == null) {
-        return false
-    }
-    if(viewModel.isScanning.value == true) {
-        return false
-    }
-
-    Log.d(TAG, "CanMeasure, measurement count ${viewModel.measurements.value} ${viewModel.measurements.value?.count()}")
-    if(viewModel.measurements.value?.count()?:0 >= 2) {
-        return false
-    }
-    return true
-}
-
-fun addMeasurement() {
-
-    Log.d(TAG, "Adding, values now ${viewModel.measurements.value.toString()}, count ${viewModel.measurements.value?.count()}")
-    var measurements = viewModel.measurements.value?.toMutableList()
-
-
-    var location = viewModel.location.value
-
-    if(canMeasure()) {
-        scanDevice() // scanDevice -> bluetoothScan Callback -> adds measurement
-    }
-    viewModel.measurements.postValue(measurements)
-}
-*/
