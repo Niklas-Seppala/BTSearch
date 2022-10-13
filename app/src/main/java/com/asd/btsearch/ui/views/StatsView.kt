@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
+import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -57,6 +58,7 @@ class DevicesViewModel(context: Context) : ViewModel() {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun StatsView(
+    scaffoldState: ScaffoldState,
     modifier: Modifier = Modifier,
     navigation: NavHostController, permissionsState: MultiplePermissionsState,
     devicesViewModel: DevicesViewModel = DevicesViewModel(LocalContext.current)

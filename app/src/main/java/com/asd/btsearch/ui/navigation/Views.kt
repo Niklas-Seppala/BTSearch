@@ -21,12 +21,13 @@ private const val TAG = "Views"
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-
-fun Views(modifier: Modifier = Modifier,
+fun Views(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
-  permissions: MultiplePermissionsState?,
-          scaffoldState: ScaffoldState,
-  locationProviderClient: FusedLocationProviderClient) {
+    permissions: MultiplePermissionsState?,
+    scaffoldState: ScaffoldState,
+    locationProviderClient: FusedLocationProviderClient
+) {
 
 
     if (permissions == null) {  // TODO: Error page?
@@ -34,7 +35,10 @@ fun Views(modifier: Modifier = Modifier,
         return
     }
 
-    NavHost(navController = navController, startDestination = "${Screen.Home.baseRoute}/{deviceId}") {
+    NavHost(
+        navController = navController,
+        startDestination = "${Screen.Home.baseRoute}/{deviceId}"
+    ) {
         composable(
             route = "${Screen.Home.baseRoute}/{deviceId}",
             arguments = listOf(
@@ -52,7 +56,12 @@ fun Views(modifier: Modifier = Modifier,
             )
         }
         composable(Screen.Stats.baseRoute) {
-            StatsView(modifier = modifier, navigation = navController, permissionsState = permissions)
+            StatsView(
+                modifier = modifier,
+                navigation = navController,
+                permissionsState = permissions,
+                scaffoldState = scaffoldState
+            )
         }
         composable(Screen.Tracing.baseRoute) {
             MeasurementView(scaffoldState = scaffoldState,)

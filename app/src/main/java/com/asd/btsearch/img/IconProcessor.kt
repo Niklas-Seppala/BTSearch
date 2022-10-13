@@ -20,7 +20,7 @@ private object IconCache {
             Log.i(TAG, "Memory cache miss for icon $key")
             withContext(Dispatchers.IO) {
                 this.runCatching {
-                    val f = File(ctx.cacheDir , "img/$key.png")
+                    val f = File(ctx.cacheDir, "img/$key.png")
                     if (f.exists()) {
                         Log.i(TAG, "Found icon $key on disk cache")
                         val istream = f.inputStream()
@@ -34,7 +34,7 @@ private object IconCache {
                 }
             }
         }
-        return  bitmap
+        return bitmap
     }
 
     suspend fun cache(ctx: Context, key: String, bitmap: BitmapDrawable) {
@@ -42,7 +42,7 @@ private object IconCache {
             this.cache[key] = bitmap
             withContext(Dispatchers.IO) {
                 kotlin.runCatching {
-                    val subfolder = File(ctx.cacheDir, "img/").mkdir()
+                    File(ctx.cacheDir, "img/").mkdir()
                     val f = File(ctx.cacheDir, "img/$key.png")
                     val ostream = f.outputStream()
                     bitmap.bitmap.compress(Bitmap.CompressFormat.PNG, 90, ostream)
@@ -56,6 +56,7 @@ private object IconCache {
 
 object IconProcessor {
     private data class Dimensions<T : Number>(val width: T, val height: T)
+
     const val srcIconId = R.drawable.bluetooth_marker
     private const val height = 300
     private lateinit var bmIcon: Bitmap
