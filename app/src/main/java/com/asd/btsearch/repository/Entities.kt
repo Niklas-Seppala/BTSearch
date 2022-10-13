@@ -10,6 +10,7 @@ data class DeviceEntity (
     val timestamp: Long,
     val name: String, val mac: String,
     val lat: Double, val lon: Double,
+    val hasImg: Boolean = false,
     val isConnectable: Boolean) {
 
     companion object {
@@ -20,6 +21,7 @@ data class DeviceEntity (
             mac = "00-B0-D0-63-C2-26",
             lat = 60.234282,
             lon = 24.834913,
+//            hasImg = true,
             isConnectable = true
         )
     }

@@ -3,8 +3,6 @@ package com.asd.btsearch.ui.views
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,16 +12,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.asd.btsearch.R
 import com.asd.btsearch.ui.events.BottomBarClickHandler
-import com.asd.btsearch.ui.events.TopBarClickHandler
 import com.asd.btsearch.ui.events.rememberPermissionState
 import com.asd.btsearch.ui.navigation.Navigable
 import com.asd.btsearch.ui.navigation.Views
-import com.asd.btsearch.ui.theme.Blue100
-import com.asd.btsearch.ui.theme.Blue200
 import com.asd.btsearch.ui.theme.Orange200
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.FusedLocationProviderClient
-import kotlinx.coroutines.launch
 
 private const val TAG = "AppRoot"
 
@@ -31,15 +25,13 @@ private const val TAG = "AppRoot"
 @Composable
 fun AppRoot(
     modifier: Modifier = Modifier,
-    topBarClickHandler: TopBarClickHandler,
     bottomClickHandler: BottomBarClickHandler,
     locationClient: FusedLocationProviderClient
 ) {
     val navController = rememberNavController()
     val permissionState = rememberPermissionState()
     val scaffoldState = rememberScaffoldState()
-    val scope = rememberCoroutineScope()
-    (topBarClickHandler as Navigable).also { it.setNavController(navController) }
+    (bottomClickHandler as Navigable).also { it.setNavController(navController) }
 
     Scaffold(
         modifier = modifier,
@@ -61,23 +53,10 @@ fun AppRoot(
 
             }
         },
-        topBar = {
-            TopAppBar(
-                title = { AppTitle() },
-                actions = {
-                    IconButton(onClick = topBarClickHandler::onSettingsClick) {
-                        Icon(Icons.Filled.Settings,
-                            contentDescription = stringResource(R.string.topBarSettingsIconDesc)
-                        )
-                    }
-                }
-            )
-        },
+        topBar = { TopAppBar( title = { AppTitle() }) },
         isFloatingActionButtonDocked = true,
         bottomBar = {
-
             var selected by remember { mutableStateOf(1) }
-
             BottomAppBar(cutoutShape = MaterialTheme.shapes.small.copy(
                 CornerSize(percent = 50)
             )) {
@@ -109,8 +88,7 @@ fun AppRoot(
             navController = navController,
             permissions = permissionState,
             locationProviderClient = locationClient,
-            scaffoldState = scaffoldState
+            scaffoldState = scaffoldState,
         )
-
     }
 }

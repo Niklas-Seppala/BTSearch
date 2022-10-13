@@ -100,8 +100,8 @@ class MeasurementViewModel: ViewModel() {
                         timestamp = System.currentTimeMillis() / 1000,
                         name = device.scanRecord?.deviceName ?: "Unknown",
                         mac = device.device.address,
-                        lat = it.longitude,
-                        lon = it.latitude,
+                        lat = it.latitude,
+                        lon = it.longitude,
                         isConnectable = device.isConnectable
                     )
                 )
@@ -273,8 +273,6 @@ fun MeasurementView(
     }
 }
 
-
-
 @SuppressLint("MissingPermission")
 @Composable
 fun DeviceInfo(device: ScanResult, act:Activity, vm: MeasurementViewModel, scaffoldState: ScaffoldState) {
@@ -284,10 +282,10 @@ fun DeviceInfo(device: ScanResult, act:Activity, vm: MeasurementViewModel, scaff
             device = null,
             deviceName = device.scanRecord?.deviceName ?: "Unknown",
             deviceMac = device.device.address,
+            deviceConnectable = device.isConnectable,
             deviceTimestamp = null,
             deviceLat = null,
             deviceLon = null,
-            onJumpToLocation = { /*TODO*/ }
         ) {}
         if(distance.value!! <= MINIMUM_SAVE_DISTANCE) {
             Log.d(TAG, "DeviceDistance ${distance.value}")

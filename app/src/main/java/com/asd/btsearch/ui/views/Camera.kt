@@ -46,10 +46,17 @@ fun CameraView(
         scope.launch(Dispatchers.IO) {
             if (it) {
                 result = BitmapFactory.decodeFile(path)
-                context.openFileOutput("$deviceId.png", MODE_PRIVATE).use {
+                if (result == null) {
+                    Log.e(TAG, "Could not save null bitmap")
+                    onCancel?.invoke()
+                    return@launch
+                }
+                context.openFileOutput("$deviceId.jpg", MODE_PRIVATE).use {
                     result?.compress(Bitmap.CompressFormat.JPEG, 80, it)
                 }
+                if (result == null)
                 Log.d(TAG, "Pic for device $deviceId saved.")
+
                 onSuccess?.invoke()
             } else {
                 Log.d(TAG, "Pic for device $deviceId cancelled, was not saved.")

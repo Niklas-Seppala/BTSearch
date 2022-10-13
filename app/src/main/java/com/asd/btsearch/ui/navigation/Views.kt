@@ -9,10 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.asd.btsearch.ui.views.HomeView
-import com.asd.btsearch.ui.views.MeasurementView
-import com.asd.btsearch.ui.views.SettingsView
-import com.asd.btsearch.ui.views.StatsView
+import com.asd.btsearch.ui.views.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -28,8 +25,6 @@ fun Views(
     scaffoldState: ScaffoldState,
     locationProviderClient: FusedLocationProviderClient
 ) {
-
-
     if (permissions == null) {  // TODO: Error page?
         Text(text = "Device does not support BLE")
         return
@@ -66,8 +61,21 @@ fun Views(
         composable(Screen.Tracing.baseRoute) {
             MeasurementView(scaffoldState = scaffoldState,)
         }
-        composable(Screen.Settings.baseRoute) {
-            SettingsView(navigation = navController, permissionsState = permissions)
+        composable(
+            route= "${Screen.Photo.baseRoute}/{deviceId}/{deviceMac}",
+            arguments = listOf(
+                navArgument("deviceId") {
+                    type = NavType.IntType
+                },
+                navArgument("deviceMac") {
+                    type = NavType.StringType
+                }
+            )) {
+            PhotoView(
+                modifier = modifier,
+                deviceId = it.arguments?.getInt("deviceId") ?: -1,
+                mac = it.arguments?.getString("deviceMac") ?: "Unknown",
+            )
         }
     }
 }
