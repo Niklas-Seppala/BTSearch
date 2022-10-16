@@ -1,6 +1,6 @@
 # BTSearch
 Android mobile application built with Jetpack Compose. Save your BTLE devices on map so yoou can find them later.
-App has Bluetooth scanner that you can use to roughly locate your missing device.
+The App has a Bluetooth scanner that you can use to roughly locate your missing device.
 
 ## Build
 No extra steps required. Load project to Android Studio.
