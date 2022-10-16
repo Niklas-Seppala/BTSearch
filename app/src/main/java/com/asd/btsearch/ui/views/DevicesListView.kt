@@ -73,53 +73,47 @@ fun StatsView(
     val devices = devicesViewModel.devices.observeAsState(listOf())
     val scope = rememberCoroutineScope()
 
-    Column(modifier.padding(bottom = 30.dp)) {
-        Button(modifier = Modifier.padding(start = 8.dp),
-            onClick = { devicesViewModel.DEBUG_ADD_DUMMY_ENTRY() }) {
-            Text(text = "Add debug entry")
-        }
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items( items = devices.value, key = {it.id}) {
-                DeviceCard(
-                    modifier = Modifier.animateItemPlacement(),
-                    device = it,
-                    deviceName = it.name,
-                    deviceMac = it.mac,
-                    deviceTimestamp = it.timestamp,
-                    deviceLat = it.lat,
-                    deviceLon = it.lon,
-                    onDelete = {
-                        scope.launch {
-                            val res = scaffoldState.snackbarHostState.showSnackbar(
-                                "Confirm delete for ${it.mac}?",
-                                "Yes"
-                            )
-                            when(res) {
-                                SnackbarResult.Dismissed -> {}
-                                SnackbarResult.ActionPerformed -> {
-                                    devicesViewModel.delete(it)
-                                }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items(items = devices.value, key = { it.id }) {
+            DeviceCard(
+                modifier = Modifier.animateItemPlacement(),
+                device = it,
+                deviceName = it.name,
+                deviceMac = it.mac,
+                deviceTimestamp = it.timestamp,
+                deviceLat = it.lat,
+                deviceLon = it.lon,
+                onDelete = {
+                    scope.launch {
+                        val res = scaffoldState.snackbarHostState.showSnackbar(
+                            "Confirm delete for ${it.mac}?",
+                            "Yes"
+                        )
+                        when (res) {
+                            SnackbarResult.Dismissed -> {}
+                            SnackbarResult.ActionPerformed -> {
+                                devicesViewModel.delete(it)
                             }
                         }
-                    },
-                    onPhotoSuccess = {
-                        scaffoldState.snackbarHostState.showSnackbar("Image saved");
-                        devicesViewModel.attachPhoto(it.id)
-                    },
-                    onPhotoError = {
-                        scaffoldState.snackbarHostState.showSnackbar("Could not attach image");
-                    },
-                    onPhotoClick = {
-                        Log.d(TAG, "navigate to photo")
-                        navigation.navigate(Screen.Photo.withArgs("${it.id}", it.mac))
-                    },
-                    onJumpToLocation = {
-                        navigation.navigate(Screen.Home.withArgs("${it.id}"))
-                    })
-            }
+                    }
+                },
+                onPhotoSuccess = {
+                    scaffoldState.snackbarHostState.showSnackbar("Image saved");
+                    devicesViewModel.attachPhoto(it.id)
+                },
+                onPhotoError = {
+                    scaffoldState.snackbarHostState.showSnackbar("Could not attach image");
+                },
+                onPhotoClick = {
+                    Log.d(TAG, "navigate to photo")
+                    navigation.navigate(Screen.Photo.withArgs("${it.id}", it.mac))
+                },
+                onJumpToLocation = {
+                    navigation.navigate(Screen.Home.withArgs("${it.id}"))
+                })
         }
     }
 }
